@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ghost Native Operations</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; color: #fff; height: 100vh; display: flex; flex-direction: column; }
+        
+        #env-selector {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .env-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .env-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .env-btn.active { background: rgba(255,255,255,0.4); }
+        
+        #display-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+        
+        #stackblitz-frame, #vnc-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .ghost-logo {
+            width: 120px;
+            height: 120px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div id="env-selector">
+        <button class="env-btn active" onclick="loadStackBlitz()">📦 StackBlitz</button>
+        <button class="env-btn" onclick="loadCodeSandbox()">📦 CodeSandbox</button>
+        <button class="env-btn" onclick="loadChrome()">🌐 Chrome</button>
+        <button class="env-btn" onclick="loadVisual()">👻 Visual Editor</button>
+    </div>
+    
+    <div id="display-container">
+        <div id="loading">
+            <img src="/public/ghost-logo.png" class="ghost-logo">
+            <p style="color: #667eea; margin-top: 20px;">Loading Native Environment...</p>
+        </div>
+        <iframe id="stackblitz-frame"></iframe>
+        <iframe id="vnc-frame"></iframe>
+    </div>
+    
+    <script>
+        // Auto-load StackBlitz on startup
+        window.onload = () => setTimeout(() => loadStackBlitz(), 500);
+        
+        function loadStackBlitz() {
+            document.getElementById('loading').style.display = 'block';
+            const frame = document.getElementById('stackblitz-frame');
+            frame.src = 'https://stackblitz.com/fork/vite?embed=1&view=editor&terminal=1';
+            frame.onload = () => {
+                document.getElementById('loading').style.display = 'none';
+                frame.style.display = 'block';
+                document.getElementById('vnc-frame').style.display = 'none';
+            };
+            updateActiveBtn(event.target || document.querySelector('.env-btn'));
+        }
+        
+        function loadCodeSandbox() {
+            document.getElementById('loading').style.display = 'block';
+            const frame = document.getElementById('stackblitz-frame');
+            frame.src = 'https://codesandbox.io/embed/new?embed=1';
+            frame.onload = () => {
+                document.getElementById('loading').style.display = 'none';
+                frame.style.display = 'block';
+                document.getElementById('vnc-frame').style.display = 'none';
+            };
+            updateActiveBtn(event.target);
+        }
+        
+        function loadChrome() {
+            // Launch Chrome in container with VNC
+            fetch('/api/launch-native-chrome', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.vnc_url) {
+                        document.getElementById('vnc-frame').src = data.vnc_url;
+                        document.getElementById('vnc-frame').style.display = 'block';
+                        document.getElementById('stackblitz-frame').style.display = 'none';
+                        document.getElementById('loading').style.display = 'none';
+                    }
+                });
+            updateActiveBtn(event.target);
+        }
+        
+        function loadVisual() {
+            // Load Ghost Visual Editor
+            const frame = document.getElementById('stackblitz-frame');
+            frame.src = 'https://stackblitz.com/edit/ghost-visual?embed=1&view=preview';
+            frame.onload = () => {
+                document.getElementById('loading').style.display = 'none';
+                frame.style.display = 'block';
+                document.getElementById('vnc-frame').style.display = 'none';
+            };
+            updateActiveBtn(event.target);
+        }
+        
+        function updateActiveBtn(btn) {
+            document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+        }
+    </script>
+</body>
+</html>

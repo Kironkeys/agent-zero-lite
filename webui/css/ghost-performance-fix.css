@@ -1,0 +1,78 @@
+/* Performance optimizations to reduce CPU usage */
+
+/* Disable only ghost avatar animations by default */
+.ghost-avatar *,
+.ghost-smoke-particle {
+    animation-play-state: paused !important;
+}
+
+/* Only enable animations when actually needed */
+.ghost-avatar.speaking * {
+    animation-play-state: running !important;
+}
+
+/* Reduce animation complexity */
+.ghost-smoke-particle {
+    display: none;
+}
+
+/* Show smoke only when speaking */
+.ghost-avatar.speaking .ghost-smoke-particle {
+    display: block;
+}
+
+/* Disable complex transforms on idle */
+.ghost-avatar:not(.speaking) {
+    transform: none !important;
+}
+
+/* Use GPU acceleration for active animations */
+.ghost-avatar.speaking {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Reduce shadow complexity */
+.ghost-avatar {
+    box-shadow: 0 4px 8px rgba(147, 51, 234, 0.2);
+}
+
+/* Disable pulsing borders when idle */
+.ghost-avatar:not(.speaking) {
+    border: 2px solid rgba(147, 51, 234, 0.5);
+    animation: none !important;
+}
+
+/* Optimize image rendering */
+.ghost-avatar img {
+    image-rendering: optimizeSpeed;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* Reduce repaints for static elements */
+#left-panel,
+#right-panel,
+.container {
+    will-change: auto;
+    backface-visibility: hidden;
+}
+
+/* Disable hover animations on mobile */
+@media (max-width: 768px) {
+    *:hover {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Performance mode toggle (can be activated via JS) */
+body.performance-mode * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+body.performance-mode .ghost-smoke-particle {
+    display: none !important;
+}

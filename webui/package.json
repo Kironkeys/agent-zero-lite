@@ -1,0 +1,13 @@
+{
+  "name": "ghost-webui",
+  "version": "1.0.0",
+  "description": "Ghost Web UI with WebContainer support",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@webcontainer/api": "^1.1.9"
+  },
+  "devDependencies": {}
+}

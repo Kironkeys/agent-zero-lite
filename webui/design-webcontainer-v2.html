@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Design Tab - WebContainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 12px 20px;
+            border-bottom: 1px solid #2a2a3e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-idle { background: #2a2a3e; color: #888; }
+        .status-booting { background: #3b4903; color: #d4e815; }
+        .status-processing { background: #1e3a5f; color: #64b5f6; }
+        .status-installing { background: #4a148c; color: #ce93d8; }
+        .status-starting { background: #e65100; color: #ffcc80; }
+        .status-ready { background: #1b5e20; color: #81c784; }
+        .status-error { background: #b71c1c; color: #ef5350; }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            color: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #3a3a4e;
+            border-color: #4a4a5e;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn.active {
+            background: #667eea;
+            border-color: #667eea;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            background: #0f0f0f;
+        }
+
+        .preview-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #previewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: none;
+        }
+
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #888;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 10, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .loading-details {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .element-selector-hint {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            z-index: 100;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .error-banner {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: #b71c1c;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(183, 28, 28, 0.3);
+            z-index: 1001;
+            display: none;
+        }
+
+        .footer {
+            background: #1a1a2e;
+            padding: 10px 20px;
+            border-top: 1px solid #2a2a3e;
+            display: none;
+        }
+
+        .element-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .element-info code {
+            background: #2a2a3e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #64b5f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-title">
+                <span style="font-size: 20px;">🚀</span>
+                <h1 style="font-size: 18px; font-weight: 600;">Ghost Design Canvas</h1>
+                <span id="status" class="status-badge status-idle">Idle</span>
+            </div>
+            <div class="controls">
+                <button id="elementPickerBtn" class="btn" disabled>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 2l12 12M14 2l-12 12"/>
+                    </svg>
+                    Element Picker
+                </button>
+                <button id="refreshBtn" class="btn" disabled>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 8a6 6 0 1 0 12 0M14 8a6 6 0 1 0-12 0"/>
+                    </svg>
+                    Refresh
+                </button>
+                <button id="newTabBtn" class="btn" disabled>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="10" height="10" rx="1"/>
+                        <path d="M7 7l6-6M13 3v4h-4"/>
+                    </svg>
+                    Open in New Tab
+                </button>
+                <button id="deployBtn" class="btn btn-primary" disabled>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 2v8M4 6l4 4 4-4M2 14h12"/>
+                    </svg>
+                    Deploy to Netlify
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="preview-container">
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
+                    <h2>Ready for Ghost Output</h2>
+                    <p>Ask Ghost to create an app and it will appear here automatically</p>
+                </div>
+
+                <!-- Preview Frame -->
+                <iframe id="previewFrame"></iframe>
+
+                <!-- Loading Overlay -->
+                <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Preparing WebContainer...</div>
+                    <div id="loadingDetails" class="loading-details">Initializing environment</div>
+                </div>
+            </div>
+
+            <!-- Element selector hint -->
+            <div id="elementSelectorHint" class="element-selector-hint">
+                Click any element in the preview to select and edit it
+            </div>
+
+            <!-- Error banner -->
+            <div id="errorBanner" class="error-banner" style="display: none;"></div>
+        </div>
+
+        <!-- Footer (hidden initially) -->
+        <div id="footer" class="footer">
+            <div class="element-info">
+                <span>Selected:</span>
+                <code id="selectedElement">None</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load WebContainer Loader -->
+    <script src="js/webcontainer-loader.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+        // UI Elements
+        const statusBadge = document.getElementById('status');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingDetails = document.getElementById('loadingDetails');
+        const emptyState = document.getElementById('emptyState');
+        const previewFrame = document.getElementById('previewFrame');
+        const elementPickerBtn = document.getElementById('elementPickerBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const newTabBtn = document.getElementById('newTabBtn');
+        const deployBtn = document.getElementById('deployBtn');
+        const elementSelectorHint = document.getElementById('elementSelectorHint');
+        const errorBanner = document.getElementById('errorBanner');
+        const footer = document.getElementById('footer');
+        const selectedElementText = document.getElementById('selectedElement');
+
+        let webContainer = null;
+        let currentFiles = {};
+        let isElementPickerActive = false;
+        let currentPreviewUrl = null;
+
+        // Initialize WebContainer
+        async function initWebContainer() {
+            try {
+                updateStatus('booting', 'Loading WebContainer...');
+                
+                // Use the WebContainerService from loader
+                if (!window.WebContainerService) {
+                    throw new Error('WebContainer loader not found');
+                }
+                
+                webContainer = await window.WebContainerService.getContainer();
+                
+                if (!webContainer) {
+                    throw new Error('Failed to get WebContainer instance');
+                }
+                
+                updateStatus('ready', 'Ready');
+                console.log('✅ WebContainer initialized successfully');
+                
+                // Setup server ready listener
+                if (webContainer.on) {
+                    webContainer.on('server-ready', (port, url) => {
+                        console.log(`Server ready on port ${port}: ${url}`);
+                        currentPreviewUrl = url || webContainer.getUrl(port);
+                        showPreview(currentPreviewUrl);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Failed to initialize WebContainer:', error);
+                updateStatus('error', 'Failed to initialize');
+                showError('Failed to initialize WebContainer: ' + error.message);
+            }
+        }
+
+        // Process Dyad output
+        async function processDyadOutput(content) {
+            if (!webContainer) {
+                await initWebContainer();
+            }
+            
+            try {
+                updateStatus('processing', 'Processing files...');
+                
+                // Parse dyad-write tags
+                const files = parseDyadWriteTags(content);
+                currentFiles = files;
+                
+                // Mount files to WebContainer
+                await mountFiles(files);
+                
+                // Install dependencies if package.json exists
+                if (files['package.json']) {
+                    await installDependencies();
+                }
+                
+                // Start dev server
+                await startDevServer();
+                
+            } catch (error) {
+                console.error('Error processing Dyad output:', error);
+                showError('Failed to process app: ' + error.message);
+            }
+        }
+
+        // Parse dyad-write tags
+        function parseDyadWriteTags(content) {
+            const files = {};
+            const pattern = /<dyad-write\s+path="([^"]+)"[^>]*>([\s\S]*?)<\/dyad-write>/g;
+            let match;
+            
+            while ((match = pattern.exec(content)) !== null) {
+                const path = match[1];
+                const fileContent = match[2].trim();
+                files[path] = {
+                    file: {
+                        contents: fileContent
+                    }
+                };
+            }
+            
+            // Add default files if not present
+            if (!files['package.json']) {
+                files['package.json'] = {
+                    file: {
+                        contents: JSON.stringify({
+                            name: "ghost-app",
+                            version: "0.1.0",
+                            private: true,
+                            scripts: {
+                                dev: "vite",
+                                build: "vite build",
+                                preview: "vite preview"
+                            },
+                            dependencies: {
+                                "react": "^18.2.0",
+                                "react-dom": "^18.2.0"
+                            },
+                            devDependencies: {
+                                "@vitejs/plugin-react": "^4.2.0",
+                                "vite": "^5.0.0"
+                            }
+                        }, null, 2)
+                    }
+                };
+            }
+            
+            if (!files['vite.config.js']) {
+                files['vite.config.js'] = {
+                    file: {
+                        contents: `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000
+  }
+});`
+                    }
+                };
+            }
+            
+            if (!files['index.html']) {
+                files['index.html'] = {
+                    file: {
+                        contents: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost App</title>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>`
+                    }
+                };
+            }
+            
+            return files;
+        }
+
+        // Mount files to WebContainer
+        async function mountFiles(files) {
+            console.log('Mounting files to WebContainer...');
+            
+            if (webContainer.mount) {
+                await webContainer.mount(files);
+            } else {
+                // Fallback for simple container
+                console.log('Using fallback mount method');
+                webContainer.files = files;
+            }
+        }
+
+        // Install dependencies
+        async function installDependencies() {
+            updateStatus('installing', 'Installing dependencies...');
+            
+            if (webContainer.spawn) {
+                const installProcess = await webContainer.spawn('npm', ['install']);
+                
+                if (installProcess.output) {
+                    installProcess.output.pipeTo(new WritableStream({
+                        write(data) {
+                            console.log(data);
+                        }
+                    }));
+                }
+                
+                const exitCode = await installProcess.exit;
+                if (exitCode !== 0) {
+                    throw new Error(`npm install failed with exit code ${exitCode}`);
+                }
+            }
+        }
+
+        // Start dev server
+        async function startDevServer() {
+            updateStatus('starting', 'Starting dev server...');
+            
+            if (webContainer.spawn) {
+                const serverProcess = await webContainer.spawn('npm', ['run', 'dev']);
+                
+                if (serverProcess.output) {
+                    serverProcess.output.pipeTo(new WritableStream({
+                        write(data) {
+                            console.log(data);
+                        }
+                    }));
+                }
+            } else if (webContainer.iframe) {
+                // Fallback for simple container
+                document.getElementById('previewFrame').replaceWith(webContainer.iframe);
+                webContainer.iframe.id = 'previewFrame';
+                await webContainer.mount(currentFiles);
+                showPreview('about:blank');
+                updateStatus('ready', 'Preview Ready');
+            }
+        }
+
+        // Update status
+        function updateStatus(state, message) {
+            statusBadge.className = `status-badge status-${state}`;
+            statusBadge.textContent = message || state;
+
+            if (['booting', 'processing', 'installing', 'starting'].includes(state)) {
+                loadingOverlay.style.display = 'flex';
+                loadingDetails.textContent = message;
+                emptyState.style.display = 'none';
+            } else if (state === 'ready') {
+                loadingOverlay.style.display = 'none';
+                enableControls();
+            } else if (state === 'idle') {
+                loadingOverlay.style.display = 'none';
+            } else if (state === 'error') {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Show preview
+        function showPreview(url) {
+            if (!webContainer.iframe) {
+                previewFrame.src = url;
+            }
+            previewFrame.style.display = 'block';
+            emptyState.style.display = 'none';
+            loadingOverlay.style.display = 'none';
+            enableControls();
+        }
+
+        // Show error
+        function showError(message) {
+            errorBanner.textContent = message;
+            errorBanner.style.display = 'block';
+            updateStatus('error', 'Error');
+            
+            setTimeout(() => {
+                errorBanner.style.display = 'none';
+            }, 5000);
+        }
+
+        // Enable controls
+        function enableControls() {
+            elementPickerBtn.disabled = false;
+            refreshBtn.disabled = false;
+            newTabBtn.disabled = false;
+            deployBtn.disabled = false;
+        }
+
+        // Button handlers
+        elementPickerBtn.addEventListener('click', () => {
+            isElementPickerActive = !isElementPickerActive;
+            elementPickerBtn.classList.toggle('active', isElementPickerActive);
+            elementSelectorHint.style.display = isElementPickerActive ? 'block' : 'none';
+            
+            if (isElementPickerActive) {
+                setupElementSelection();
+            } else {
+                teardownElementSelection();
+            }
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            if (currentPreviewUrl) {
+                previewFrame.src = currentPreviewUrl;
+            }
+        });
+
+        newTabBtn.addEventListener('click', () => {
+            if (currentPreviewUrl) {
+                window.open(currentPreviewUrl, '_blank');
+            }
+        });
+
+        deployBtn.addEventListener('click', () => {
+            window.parent.postMessage({
+                type: 'deploy-request',
+                files: currentFiles
+            }, '*');
+        });
+
+        // Element selection
+        function setupElementSelection() {
+            previewFrame.contentWindow.postMessage({
+                type: 'enable-element-selection'
+            }, '*');
+        }
+
+        function teardownElementSelection() {
+            previewFrame.contentWindow.postMessage({
+                type: 'disable-element-selection'
+            }, '*');
+        }
+
+        // Listen for messages
+        window.addEventListener('message', async (event) => {
+            if (event.data.type === 'load-dyad-output') {
+                console.log('Received Dyad output');
+                await processDyadOutput(event.data.content);
+            } else if (event.data.type === 'element-selected') {
+                selectedElementText.textContent = event.data.selector;
+                footer.style.display = 'block';
+                
+                // Send to parent for editing
+                window.parent.postMessage({
+                    type: 'element-selected-for-editing',
+                    element: event.data
+                }, '*');
+            } else if (event.data.type === 'activate-selector') {
+                elementPickerBtn.click();
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            console.log('Design tab loaded, waiting for WebContainer API...');
+            // Don't auto-init, wait for Dyad output
+        });
+    </script>
+</body>
+</html>

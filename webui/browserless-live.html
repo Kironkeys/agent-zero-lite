@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Browser - VNC</title>
+    <style>
+        body { margin: 0; padding: 0; background: #1a1a1a; overflow: hidden; }
+        #vnc-frame { 
+            width: 100%; 
+            height: 100vh; 
+            border: none; 
+            background: #000;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #667eea;
+            font-family: system-ui;
+            text-align: center;
+        }
+        .loading h2 { margin-bottom: 10px; }
+        .spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <h2>Connecting to Live Browser...</h2>
+        <div class="spinner"></div>
+        <p>VNC viewer loading at port 5800</p>
+    </div>
+    <iframe id="vnc-frame" src="http://localhost:5800/vnc.html" allow="camera; microphone; fullscreen; clipboard-read; clipboard-write" style="display: none;"></iframe>
+    
+    <script>
+        // Hide loading and show VNC when loaded
+        document.getElementById('vnc-frame').onload = function() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('vnc-frame').style.display = 'block';
+        };
+        
+        // Fallback if VNC doesn't load
+        setTimeout(() => {
+            const frame = document.getElementById('vnc-frame');
+            if (frame.style.display === 'none') {
+                document.getElementById('loading').innerHTML = `
+                    <h2>VNC Not Available</h2>
+                    <p>Make sure Ghost container is running with VNC support</p>
+                    <p>Run: docker-compose -f docker-compose-vnc.yml up</p>
+                `;
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

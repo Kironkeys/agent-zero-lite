@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Browser Use Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .controller {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #00ff00;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .ghost-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .info {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .url {
+            color: #00ff00;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #00ff00, #00aa00);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        button.secondary {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.05);
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .connected {
+            color: #00ff00;
+        }
+        
+        .disconnected {
+            color: #ff3333;
+        }
+    </style>
+</head>
+<body>
+    <div class="controller">
+        <div class="ghost-icon">👻</div>
+        <h1>Ghost Browser Use Controller</h1>
+        
+        <div class="info">
+            <div>Browser Use Session Active</div>
+            <div class="url" id="browser-url">Waiting for URL...</div>
+        </div>
+        
+        <div class="buttons">
+            <button onclick="openBrowserWindow()">Open Browser Window</button>
+            <button onclick="copyUrl()" class="secondary">Copy URL</button>
+            <button onclick="window.close()" class="secondary">Close Controller</button>
+        </div>
+        
+        <div class="status">
+            <span id="status-text" class="connected">● Connected to Ghost</span>
+        </div>
+    </div>
+    
+    <script>
+        let browserUrl = null;
+        let browserWindow = null;
+        
+        // Get URL from query params or storage
+        function initController() {
+            const params = new URLSearchParams(window.location.search);
+            browserUrl = params.get('url') || localStorage.getItem('browserUseUrl');
+            
+            if (browserUrl) {
+                document.getElementById('browser-url').textContent = browserUrl;
+                // Auto-open browser window
+                setTimeout(() => {
+                    openBrowserWindow();
+                }, 500);
+            }
+        }
+        
+        function openBrowserWindow() {
+            if (!browserUrl) {
+                alert('No Browser Use URL available');
+                return;
+            }
+            
+            // Open in new window with specific dimensions
+            const width = 1200;
+            const height = 800;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            browserWindow = window.open(
+                browserUrl,
+                'GhostBrowserUse',
+                `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,location=yes,status=yes`
+            );
+            
+            if (browserWindow) {
+                document.getElementById('status-text').textContent = '● Browser window opened';
+                document.getElementById('status-text').className = 'connected';
+            } else {
+                alert('Pop-up blocked! Please allow pop-ups for this site.');
+            }
+        }
+        
+        function copyUrl() {
+            if (browserUrl) {
+                navigator.clipboard.writeText(browserUrl).then(() => {
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            }
+        }
+        
+        // Listen for messages from Ghost
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.browserUrl) {
+                browserUrl = event.data.browserUrl;
+                document.getElementById('browser-url').textContent = browserUrl;
+                localStorage.setItem('browserUseUrl', browserUrl);
+            }
+        });
+        
+        // Check if browser window is still open
+        setInterval(() => {
+            if (browserWindow && browserWindow.closed) {
+                document.getElementById('status-text').textContent = '● Browser window closed';
+                document.getElementById('status-text').className = 'disconnected';
+                browserWindow = null;
+            }
+        }, 1000);
+        
+        // Initialize
+        initController();
+    </script>
+</body>
+</html>

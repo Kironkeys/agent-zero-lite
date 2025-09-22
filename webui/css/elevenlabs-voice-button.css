@@ -1,0 +1,209 @@
+/* ElevenLabs Voice Button Styles */
+
+.elevenlabs-voice-button {
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    overflow: visible;
+}
+
+.elevenlabs-voice-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    border-color: rgba(118, 75, 162, 0.5);
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ElevenLabs Logo */
+.elevenlabs-voice-button .elevenlabs-logo {
+    width: 24px;
+    height: 24px;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+}
+
+/* Button States */
+.elevenlabs-voice-button.elevenlabs-inactive {
+    opacity: 0.7;
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    border-color: rgba(74, 85, 104, 0.3);
+}
+
+.elevenlabs-voice-button.elevenlabs-inactive .elevenlabs-logo {
+    filter: grayscale(100%) opacity(0.6);
+}
+
+/* Connecting State */
+.elevenlabs-voice-button.elevenlabs-connecting {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    animation: pulse-elevenlabs 1.5s infinite;
+}
+
+@keyframes pulse-elevenlabs {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* Connected State */
+.elevenlabs-voice-button.elevenlabs-connected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+}
+
+.elevenlabs-voice-button.elevenlabs-connected .elevenlabs-logo {
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* Listening State (VAD active, waiting for speech) */
+.elevenlabs-voice-button.elevenlabs-listening {
+    background: linear-gradient(135deg, #805ad5 0%, #667eea 100%);
+    border-color: rgba(128, 90, 213, 0.5);
+    animation: gentle-pulse-elevenlabs 2s ease-in-out infinite;
+}
+
+@keyframes gentle-pulse-elevenlabs {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(102, 126, 234, 0.5);
+    }
+}
+
+.elevenlabs-voice-button.elevenlabs-listening .elevenlabs-logo {
+    filter: brightness(1.1) drop-shadow(0 0 6px rgba(255, 255, 255, 0.4));
+    animation: float-elevenlabs 3s ease-in-out infinite;
+}
+
+@keyframes float-elevenlabs {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
+/* Recording/Listening State */
+.elevenlabs-voice-button.elevenlabs-recording {
+    background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+    border-color: rgba(245, 101, 101, 0.5);
+    animation: recording-elevenlabs 1s infinite;
+}
+
+@keyframes recording-elevenlabs {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.elevenlabs-voice-button.elevenlabs-recording .elevenlabs-logo {
+    animation: spin-elevenlabs 2s linear infinite;
+}
+
+@keyframes spin-elevenlabs {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Speaking State (when ElevenLabs is responding) */
+.elevenlabs-voice-button.elevenlabs-speaking {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    border-color: rgba(72, 187, 120, 0.5);
+}
+
+.elevenlabs-voice-button.elevenlabs-speaking .elevenlabs-logo {
+    animation: bounce-elevenlabs 0.5s ease-in-out infinite;
+}
+
+@keyframes bounce-elevenlabs {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+/* Processing State */
+.elevenlabs-voice-button.elevenlabs-processing {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+    border-color: rgba(237, 137, 54, 0.5);
+}
+
+.elevenlabs-voice-button.elevenlabs-processing .elevenlabs-logo {
+    animation: pulse-scale-elevenlabs 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse-scale-elevenlabs {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+}
+
+/* Error State */
+.elevenlabs-voice-button.elevenlabs-error {
+    background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+    border-color: rgba(252, 129, 129, 0.5);
+    animation: shake-elevenlabs 0.5s;
+}
+
+@keyframes shake-elevenlabs {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Disabled State */
+.elevenlabs-voice-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+}
+
+.elevenlabs-voice-button:disabled .elevenlabs-logo {
+    filter: grayscale(100%) opacity(0.5);
+}
+
+/* Tooltip */
+.elevenlabs-voice-button::after {
+    content: attr(data-status);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    margin-bottom: 5px;
+}
+
+.elevenlabs-voice-button:hover::after {
+    opacity: 1;
+}

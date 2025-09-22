@@ -1,0 +1,9 @@
+# Custom Ghost AI image with Supabase integration
+FROM agent0ai/agent-zero:v0.9.5
+
+# Install additional packages for Legacy Compass integration
+USER root
+COPY requirements-custom.txt /tmp/requirements-custom.txt
+RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements-custom.txt
+
+# Don't change user - let the base image handle it

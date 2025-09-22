@@ -1,0 +1,257 @@
+/* Hume EVI Styles */
+
+.hume-evi-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(17, 17, 17, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    min-width: 300px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+/* Status indicator */
+.hume-status {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.hume-status.connected {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.hume-status.disconnected {
+    background: rgba(255, 152, 0, 0.2);
+    color: #FF9800;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.hume-status.recording {
+    background: rgba(244, 67, 54, 0.2);
+    color: #F44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    animation: pulse 1.5s infinite;
+}
+
+.hume-status.error {
+    background: rgba(244, 67, 54, 0.2);
+    color: #F44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Control buttons */
+.hume-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.hume-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.hume-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.hume-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.hume-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.hume-btn.primary {
+    background: rgba(33, 150, 243, 0.2);
+    border-color: rgba(33, 150, 243, 0.3);
+    color: #2196F3;
+}
+
+.hume-btn.primary:hover:not(:disabled) {
+    background: rgba(33, 150, 243, 0.3);
+    border-color: rgba(33, 150, 243, 0.4);
+}
+
+.hume-btn.danger {
+    background: rgba(244, 67, 54, 0.2);
+    border-color: rgba(244, 67, 54, 0.3);
+    color: #F44336;
+}
+
+/* Emotion display */
+.hume-emotions {
+    margin-top: 20px;
+}
+
+.emotions-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 12px;
+}
+
+.emotion-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.emotion-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    width: 80px;
+    text-transform: capitalize;
+}
+
+.emotion-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.emotion-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2196F3, #00BCD4);
+    transition: width 0.5s ease;
+    border-radius: 3px;
+}
+
+.emotion-value {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    width: 35px;
+    text-align: right;
+}
+
+/* Speaking animation */
+.hume-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.avatar-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2196F3, #00BCD4);
+    position: relative;
+    overflow: hidden;
+}
+
+.avatar-circle.speaking {
+    animation: speak 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes speak {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+.wave-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    overflow: hidden;
+}
+
+.wave {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    animation: wave 3s linear infinite;
+}
+
+@keyframes wave {
+    0% { transform: translateX(-50%) translateY(100%); }
+    100% { transform: translateX(0%) translateY(100%); }
+}
+
+/* Minimized state */
+.hume-evi-container.minimized {
+    min-width: auto;
+    padding: 10px;
+}
+
+.hume-evi-container.minimized .hume-controls,
+.hume-evi-container.minimized .hume-emotions,
+.hume-evi-container.minimized .hume-avatar {
+    display: none;
+}
+
+/* Toggle button */
+.hume-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.hume-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.hume-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: rgba(255, 255, 255, 0.8);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .hume-evi-container {
+        left: 20px;
+        right: 20px;
+        bottom: 70px;
+        min-width: auto;
+    }
+}

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Design Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .design-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 12px 20px;
+            border-bottom: 1px solid #2a2a3e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .site-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .site-selector label {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .site-dropdown {
+            padding: 8px 12px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a3e;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .site-dropdown:hover {
+            border-color: #3a3a4e;
+        }
+        
+        .site-dropdown option {
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            color: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #3a3a4e;
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #00d084 0%, #00a368 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            border: none;
+            color: white;
+        }
+        
+        .preview-container {
+            flex: 1;
+            position: relative;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-toolbar {
+            background: #0f0f1e;
+            padding: 10px 20px;
+            border-bottom: 1px solid #2a2a3e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .device-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .device-btn {
+            padding: 6px 12px;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            color: #888;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .device-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+        
+        .preview-url {
+            flex: 1;
+            margin: 0 20px;
+            padding: 6px 12px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a3e;
+            border-radius: 4px;
+            color: #888;
+            font-size: 13px;
+            text-align: center;
+        }
+        
+        .preview-frame-wrapper {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0a0a0a;
+        }
+        
+        .preview-frame-container {
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        
+        .preview-frame-container.mobile {
+            max-width: 375px;
+        }
+        
+        .preview-frame-container.tablet {
+            max-width: 768px;
+        }
+        
+        #preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 10, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: #888;
+        }
+        
+        .element-selector-active {
+            cursor: crosshair !important;
+        }
+        
+        .new-site-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px dashed #3a3a4e;
+            color: #888;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .new-site-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        /* Fullscreen mode */
+        .fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 10000 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0 !important;
+        }
+        
+        .fullscreen .design-header {
+            border-radius: 0;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-saved {
+            background: #1b5e20;
+            color: #81c784;
+        }
+        
+        .status-unsaved {
+            background: #f57c00;
+            color: #ffb74d;
+        }
+    </style>
+</head>
+<body>
+    <div id="design-container">
+        <div class="design-header">
+            <div class="header-left">
+                <div class="site-selector">
+                    <label>Project:</label>
+                    <select id="site-dropdown" class="site-dropdown">
+                        <option value="">No projects yet</option>
+                    </select>
+                    <button class="new-site-btn" onclick="createNewSite()">+ New</button>
+                </div>
+                <span id="save-status" class="status-badge status-saved">Saved</span>
+            </div>
+            
+            <div class="header-actions">
+                <button class="btn" onclick="toggleElementSelector()">
+                    <span>🎯</span> Edit Element
+                </button>
+                <button class="btn" onclick="refreshPreview()">
+                    <span>🔄</span> Refresh
+                </button>
+                <button class="btn btn-primary" onclick="saveCurrentSite()">
+                    <span>💾</span> Save
+                </button>
+                <button class="btn btn-success" onclick="deployToNetlify()">
+                    <span>🚀</span> Deploy to Netlify
+                </button>
+                <button class="btn btn-warning" onclick="toggleFullscreen()">
+                    <span id="fullscreen-icon">⛶</span> <span id="fullscreen-text">Fullscreen</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="preview-container">
+            <div class="preview-toolbar">
+                <div class="device-selector">
+                    <button class="device-btn active" onclick="setDevice('desktop')">💻 Desktop</button>
+                    <button class="device-btn" onclick="setDevice('tablet')">📱 Tablet</button>
+                    <button class="device-btn" onclick="setDevice('mobile')">📱 Mobile</button>
+                </div>
+                <div class="preview-url" id="preview-url">Preview Mode</div>
+                <div>
+                    <button class="btn" onclick="openInNewTab()">↗️ Open in New Tab</button>
+                </div>
+            </div>
+            
+            <div class="preview-frame-wrapper">
+                <div class="preview-frame-container" id="preview-frame-container">
+                    <iframe id="preview-iframe" src="about:blank"></iframe>
+                </div>
+            </div>
+            
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading preview...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Site management
+        let sites = JSON.parse(localStorage.getItem('ghost-sites') || '[]');
+        let currentSite = null;
+        let currentDevice = 'desktop';
+        let isFullscreen = false;
+        let elementSelectorActive = false;
+        
+        // Initialize
+        function init() {
+            loadSites();
+            setupMessageListener();
+            
+            // Check if there's a current site in session
+            const lastSite = localStorage.getItem('ghost-current-site');
+            if (lastSite) {
+                loadSite(lastSite);
+            }
+        }
+        
+        // Load sites into dropdown
+        function loadSites() {
+            const dropdown = document.getElementById('site-dropdown');
+            dropdown.innerHTML = '';
+            
+            if (sites.length === 0) {
+                dropdown.innerHTML = '<option value="">No projects yet</option>';
+            } else {
+                sites.forEach(site => {
+                    const option = document.createElement('option');
+                    option.value = site.id;
+                    option.textContent = site.name;
+                    option.selected = site.id === currentSite?.id;
+                    dropdown.appendChild(option);
+                });
+            }
+            
+            dropdown.onchange = (e) => {
+                if (e.target.value) {
+                    loadSite(e.target.value);
+                }
+            };
+        }
+        
+        // Create new site
+        function createNewSite() {
+            const name = prompt('Enter project name:');
+            if (!name) return;
+            
+            const newSite = {
+                id: Date.now().toString(),
+                name: name,
+                code: '',
+                created: new Date().toISOString(),
+                modified: new Date().toISOString()
+            };
+            
+            sites.push(newSite);
+            localStorage.setItem('ghost-sites', JSON.stringify(sites));
+            currentSite = newSite;
+            localStorage.setItem('ghost-current-site', newSite.id);
+            
+            loadSites();
+            
+            // Tell Ghost to create a new app
+            sendToGhost('Create a new ' + name);
+        }
+        
+        // Load site
+        function loadSite(siteId) {
+            const site = sites.find(s => s.id === siteId);
+            if (!site) return;
+            
+            currentSite = site;
+            localStorage.setItem('ghost-current-site', siteId);
+            
+            if (site.code) {
+                renderPreview(site.code);
+            }
+            
+            updateSaveStatus(true);
+        }
+        
+        // Save current site
+        function saveCurrentSite() {
+            if (!currentSite) {
+                alert('No project selected');
+                return;
+            }
+            
+            const iframe = document.getElementById('preview-iframe');
+            currentSite.code = iframe.srcdoc || '';
+            currentSite.modified = new Date().toISOString();
+            
+            const siteIndex = sites.findIndex(s => s.id === currentSite.id);
+            sites[siteIndex] = currentSite;
+            
+            localStorage.setItem('ghost-sites', JSON.stringify(sites));
+            updateSaveStatus(true);
+            
+            showNotification('Project saved!');
+        }
+        
+        // Deploy to Netlify
+        async function deployToNetlify() {
+            if (!currentSite || !currentSite.code) {
+                alert('No project to deploy');
+                return;
+            }
+            
+            showLoading('Deploying to Netlify...');
+            
+            // Send to Ghost for deployment
+            sendToGhost(`Deploy this project to Netlify:\n\nProject: ${currentSite.name}\nCode is ready in the preview.`);
+            
+            // In real implementation, Ghost would:
+            // 1. Take the code from currentSite.code
+            // 2. Create GitHub repo
+            // 3. Push code
+            // 4. Connect to Netlify
+            // 5. Return deployed URL
+            
+            setTimeout(() => {
+                hideLoading();
+                showNotification('Ghost is deploying your site to Netlify...');
+            }, 2000);
+        }
+        
+        // Device switching
+        function setDevice(device) {
+            currentDevice = device;
+            const container = document.getElementById('preview-frame-container');
+            const buttons = document.querySelectorAll('.device-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            container.className = 'preview-frame-container ' + device;
+        }
+        
+        // Fullscreen toggle
+        function toggleFullscreen() {
+            const container = document.getElementById('design-container');
+            isFullscreen = !isFullscreen;
+            
+            if (isFullscreen) {
+                container.classList.add('fullscreen');
+                document.getElementById('fullscreen-icon').textContent = '⛶';
+                document.getElementById('fullscreen-text').textContent = 'Exit Fullscreen';
+            } else {
+                container.classList.remove('fullscreen');
+                document.getElementById('fullscreen-icon').textContent = '⛶';
+                document.getElementById('fullscreen-text').textContent = 'Fullscreen';
+            }
+        }
+        
+        // Element selector
+        function toggleElementSelector() {
+            elementSelectorActive = !elementSelectorActive;
+            const iframe = document.getElementById('preview-iframe');
+            
+            if (elementSelectorActive) {
+                iframe.contentWindow.postMessage({
+                    type: 'enable-element-selector'
+                }, '*');
+                iframe.classList.add('element-selector-active');
+            } else {
+                iframe.contentWindow.postMessage({
+                    type: 'disable-element-selector'
+                }, '*');
+                iframe.classList.remove('element-selector-active');
+            }
+        }
+        
+        // Refresh preview
+        function refreshPreview() {
+            const iframe = document.getElementById('preview-iframe');
+            const currentSrc = iframe.srcdoc;
+            iframe.srcdoc = '';
+            setTimeout(() => {
+                iframe.srcdoc = currentSrc;
+            }, 100);
+        }
+        
+        // Open in new tab
+        function openInNewTab() {
+            if (!currentSite || !currentSite.code) {
+                alert('No preview to open');
+                return;
+            }
+            
+            const blob = new Blob([currentSite.code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+        
+        // Render preview
+        function renderPreview(code) {
+            const iframe = document.getElementById('preview-iframe');
+            iframe.srcdoc = code;
+            
+            if (currentSite) {
+                currentSite.code = code;
+                updateSaveStatus(false);
+            }
+        }
+        
+        // Update save status
+        function updateSaveStatus(saved) {
+            const badge = document.getElementById('save-status');
+            if (saved) {
+                badge.className = 'status-badge status-saved';
+                badge.textContent = 'Saved';
+            } else {
+                badge.className = 'status-badge status-unsaved';
+                badge.textContent = 'Unsaved changes';
+            }
+        }
+        
+        // Show/hide loading
+        function showLoading(text = 'Loading...') {
+            const overlay = document.getElementById('loading-overlay');
+            overlay.querySelector('.loading-text').textContent = text;
+            overlay.classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+        
+        // Show notification
+        function showNotification(message) {
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+        
+        // Send message to Ghost
+        function sendToGhost(message) {
+            // Send to parent frame (Ghost UI)
+            window.parent.postMessage({
+                type: 'design-to-ghost',
+                message: message
+            }, '*');
+        }
+        
+        // Listen for messages from Ghost
+        function setupMessageListener() {
+            window.addEventListener('message', (event) => {
+                console.log('[Design Tab] Received message:', event.data.type);
+                
+                if (event.data.type === 'preview-code') {
+                    // Ghost sent new code
+                    console.log('[Design Tab] Rendering preview');
+                    renderPreview(event.data.code);
+                    
+                    // Auto-create a project if none exists
+                    if (!currentSite) {
+                        const newSite = {
+                            id: Date.now().toString(),
+                            name: 'Landing Page ' + new Date().toLocaleDateString(),
+                            code: event.data.code,
+                            created: new Date().toISOString(),
+                            modified: new Date().toISOString()
+                        };
+                        sites.push(newSite);
+                        currentSite = newSite;
+                        localStorage.setItem('ghost-sites', JSON.stringify(sites));
+                        loadSites();
+                    }
+                }
+                
+                if (event.data.type === 'element-selected') {
+                    // User selected an element
+                    const element = event.data.element;
+                    sendToGhost(`Edit this element: ${element.path}\nCurrent text: "${element.text}"`);
+                }
+                
+                if (event.data.type === 'deployment-complete') {
+                    // Deployment finished
+                    hideLoading();
+                    const url = event.data.url;
+                    showNotification(`Deployed to: ${url}`);
+                    document.getElementById('preview-url').textContent = url;
+                }
+            });
+        }
+        
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+### dynamic_frame
+Create ANY dynamic UI element - charts, diagrams, terminals, tables, animations, and more. This is your universal tool for creating interactive visual components that appear directly in the chat.
+
+**Usage:** `dynamic_frame element_type="type" config='{...}' action="create" frame_id="optional"`
+
+**Element Types:**
+- `chart`, `graph`, `progress` - Interactive charts and graphs (Chart.js)
+- `diagram`, `flowchart` - Mermaid diagrams and flowcharts
+- `terminal`, `console` - Interactive terminal emulator
+- `table`, `grid` - Data tables with sorting/filtering
+- `code` - Syntax-highlighted code blocks
+- `animation` - GSAP animations
+- `list` - Sortable/draggable lists
+
+**Actions:**
+- `create` - Create a new dynamic frame (default)
+- `update` - Update existing frame (requires frame_id)
+- `destroy` - Remove frame (requires frame_id)
+
+**Examples:**
+
+Create a progress bar:
+```
+dynamic_frame element_type="progress" config='{"data": {"labels": ["Task 1", "Task 2", "Task 3"], "datasets": [{"label": "Progress", "data": [25, 50, 75]}]}}'
+```
+
+Create a flowchart:
+```
+dynamic_frame element_type="diagram" config='{"content": "graph TD\\n    A[Start] --> B[Process]\\n    B --> C{Decision}\\n    C -->|Yes| D[End]\\n    C -->|No| B"}'
+```
+
+Create an interactive chart:
+```
+dynamic_frame element_type="chart" config='{"type": "bar", "data": {"labels": ["Jan", "Feb", "Mar"], "datasets": [{"label": "Sales", "data": [100, 150, 200], "backgroundColor": ["rgba(75,192,192,0.6)", "rgba(153,102,255,0.6)", "rgba(255,159,64,0.6)"]}]}}'
+```
+
+Update existing frame:
+```
+dynamic_frame element_type="progress" action="update" frame_id="ghost-frame-chartjs-abc123" config='{"data": {"datasets": [{"data": [100, 100, 100]}]}}'
+```
+
+**Pro Tips:**
+- Frame IDs are auto-generated if not provided
+- Use `update` action to animate progress bars in real-time
+- Charts automatically include dark mode styling
+- All components are interactive and can send events back

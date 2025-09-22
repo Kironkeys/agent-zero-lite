@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  agent-zero:
+    # Official v0.9.4 release with VNC browser support
+    image: agent0ai/agent-zero:v0.9.4
+    container_name: ghost-v094-vnc
+    ports:
+      - "50002:80"      # Ghost Web UI
+      - "5800:5800"     # VNC Web Interface (view browser here!)
+      - "5900:5900"     # VNC Client Port
+    extra_hosts:
+      - "dyad.local:host-gateway"
+    environment:
+      # CRITICAL: Set Flask to run on port 80 and bind to all interfaces
+      - WEB_UI_PORT=80
+      - WEB_UI_HOST=0.0.0.0
+      # Enable X11/VNC for browser viewing
+      - DISPLAY=:99
+      - VNC_PORT=5900
+      - WEB_VNC_PORT=5800
+      - DOCKER_CONTAINER=true
+      # Pass through API keys from .env file
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - OLLAMA_API_BASE=${OLLAMA_API_BASE}
+      - VENICE_API_KEY=${VENICE_API_KEY}
+      # E2B Desktop Configuration
+      - E2B_API_KEY=${E2B_API_KEY}
+      # Hume AI Configuration
+      - HUME_API_KEY=${HUME_API_KEY}
+      - HUME_CLIENT_SECRET=${HUME_CLIENT_SECRET}
+      - HUME_CONFIG_ID=${HUME_CONFIG_ID}
+      # FalkorDB Configuration
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6380
+      - USE_FALKORDB=true
+      - NEO4J_DISABLED=true
+      # Root password for SSH code execution
+      - ROOT_PASSWORD=${ROOT_PASSWORD}
+    volumes:
+      - .:/a0
+      - ./scripts/init-vnc.sh:/init-vnc.sh:ro
+      # X11 socket for display
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    networks:
+      - agent-network
+    restart: unless-stopped
+    # Install VNC and start services
+    entrypoint: ["/bin/bash", "-c", "/init-vnc.sh && cd /a0 && /opt/venv/bin/python run_ui.py --dockerized"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # FalkorDB - Lightning fast graph database
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: ghost-falkordb-vnc
+    ports:
+      - "6380:6379"
+      - "3001:3000"
+    volumes:
+      - ./falkordb_data:/var/lib/falkordb/data
+    environment:
+      - MAX_MEMORY=512mb
+    networks:
+      - agent-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  agent-network:
+    driver: bridge

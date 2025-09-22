@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Browser Cloud Operations - Simple</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+        }
+        
+        .status-dot.active {
+            background: #00ff00;
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+        }
+        
+        /* Main Content */
+        .container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Task Panel */
+        .task-panel {
+            width: 30%;
+            background: rgba(0, 0, 0, 0.5);
+            border-right: 1px solid rgba(0, 255, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .task-input {
+            margin-bottom: 20px;
+        }
+        
+        .task-input h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .task-input textarea {
+            width: 100%;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .task-input button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #00ff00, #00aa00);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .task-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .task-input button:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Task Info */
+        .task-info {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .info-item {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .info-label {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        /* Browser Panel */
+        .browser-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+        
+        .browser-controls {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 8px 20px;
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        
+        .control-btn:hover:not(:disabled) {
+            background: rgba(0, 255, 0, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-btn.takeover {
+            background: rgba(255, 170, 0, 0.2);
+            border-color: rgba(255, 170, 0, 0.5);
+            color: #ffaa00;
+        }
+        
+        .browser-frame-container {
+            flex: 1;
+            position: relative;
+            background: #fff;
+        }
+        
+        #browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .browser-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+        
+        .browser-placeholder .ghost-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Loading State */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 0, 0.3);
+            border-top: 3px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="status-indicator">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Ready</span>
+        </div>
+        <div style="margin-left: auto; color: #00ff00; font-family: monospace;">
+            Browser-Use Cloud - Direct Integration (No Polling)
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Task Input Panel -->
+        <div class="task-panel">
+            <div class="task-input">
+                <h3>Browser Task</h3>
+                <textarea id="task-input" placeholder="Enter browser automation task...
+Examples:
+- Navigate to GitHub and create a new repository
+- Open StackBlitz and create a React app
+- Search for AI tools on Google
+- Go to Fiverr and search for logo designers"></textarea>
+                <button id="execute-btn" onclick="executeTask()">🚀 Execute Task</button>
+            </div>
+            
+            <div class="task-info">
+                <h3 style="color: #00ff00; margin-bottom: 10px;">Task Information</h3>
+                <div id="task-info-container">
+                    <div class="info-item">
+                        <span class="info-label">Status:</span> No active task
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Browser Preview Panel -->
+        <div class="browser-panel">
+            <div class="browser-controls">
+                <button class="control-btn" id="pause-btn" onclick="pauseTask()" disabled>⏸️ Pause</button>
+                <button class="control-btn" id="resume-btn" onclick="resumeTask()" disabled>▶️ Resume</button>
+                <button class="control-btn takeover" id="takeover-btn" onclick="takeControl()" disabled>🎮 Take Control</button>
+                <button class="control-btn" onclick="refreshBrowser()">🔄 Refresh</button>
+                <span style="margin-left: auto; color: #666; font-size: 12px;" id="browser-url">No active session</span>
+            </div>
+            
+            <div class="browser-frame-container">
+                <div class="browser-placeholder" id="browser-placeholder">
+                    <div class="ghost-icon">👻</div>
+                    <h3>Browser Cloud Preview</h3>
+                    <p>Execute a task to start browser automation</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: #444;">
+                        Direct streaming - No SSE/WebSocket polling needed!
+                    </p>
+                </div>
+                <iframe id="browser-frame" style="display: none;"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <script>
+        let currentTaskId = null;
+        let browserPreviewUrl = null;
+        let isPaused = false;
+        
+        // NO POLLING, NO SSE, NO WEBSOCKETS - Just direct API calls!
+        
+        async function executeTask() {
+            const taskInput = document.getElementById('task-input');
+            const task = taskInput.value.trim();
+            
+            if (!task) {
+                alert('Please enter a task');
+                return;
+            }
+            
+            document.getElementById('execute-btn').disabled = true;
+            document.getElementById('loading').classList.add('active');
+            updateStatus('Starting task...');
+            
+            try {
+                // Call Ghost's field_agent to execute browser_cloud
+                const response = await fetch('/api/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: `Use browser_cloud to: ${task}`,
+                        context: localStorage.getItem('ghost-context') || ''
+                    })
+                });
+                
+                const result = await response.json();
+                
+                // Parse the response to get the Browser-Use Cloud URL
+                if (result.message) {
+                    const urlMatch = result.message.match(/https:\/\/cloud\.browser-use\.com\/[^\s]+/);
+                    if (urlMatch) {
+                        browserPreviewUrl = urlMatch[0];
+                        loadBrowserPreview(browserPreviewUrl);
+                        
+                        // Extract task ID from URL
+                        const taskIdMatch = browserPreviewUrl.match(/\/([^\/]+)$/);
+                        if (taskIdMatch) {
+                            currentTaskId = taskIdMatch[1];
+                        }
+                        
+                        // Enable control buttons
+                        document.getElementById('pause-btn').disabled = false;
+                        document.getElementById('takeover-btn').disabled = false;
+                        
+                        updateTaskInfo({
+                            status: 'Running',
+                            task: task,
+                            taskId: currentTaskId,
+                            previewUrl: browserPreviewUrl
+                        });
+                    }
+                }
+                
+                updateStatus('Task running');
+                
+            } catch (error) {
+                console.error('Failed to execute task:', error);
+                updateStatus('Error: ' + error.message);
+            } finally {
+                document.getElementById('execute-btn').disabled = false;
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+        
+        function loadBrowserPreview(url) {
+            const frame = document.getElementById('browser-frame');
+            const placeholder = document.getElementById('browser-placeholder');
+            
+            frame.src = url;
+            frame.style.display = 'block';
+            placeholder.style.display = 'none';
+            
+            document.getElementById('browser-url').textContent = url;
+            document.getElementById('status-dot').classList.add('active');
+        }
+        
+        async function pauseTask() {
+            if (!currentTaskId) return;
+            
+            try {
+                // Direct API call to Browser-Use Cloud
+                const response = await fetch(`https://api.browser-use.com/api/v1/task/${currentTaskId}/pause`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer bu_IRV0ZClvThVay3xjvksP0GSR-vfk2xWX4HyB8zjllwo'
+                    }
+                });
+                
+                if (response.ok) {
+                    isPaused = true;
+                    document.getElementById('pause-btn').disabled = true;
+                    document.getElementById('resume-btn').disabled = false;
+                    updateStatus('Task paused');
+                }
+            } catch (error) {
+                console.error('Failed to pause:', error);
+            }
+        }
+        
+        async function resumeTask() {
+            if (!currentTaskId) return;
+            
+            try {
+                // Direct API call to Browser-Use Cloud
+                const response = await fetch(`https://api.browser-use.com/api/v1/task/${currentTaskId}/resume`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer bu_IRV0ZClvThVay3xjvksP0GSR-vfk2xWX4HyB8zjllwo'
+                    }
+                });
+                
+                if (response.ok) {
+                    isPaused = false;
+                    document.getElementById('pause-btn').disabled = false;
+                    document.getElementById('resume-btn').disabled = true;
+                    updateStatus('Task resumed');
+                }
+            } catch (error) {
+                console.error('Failed to resume:', error);
+            }
+        }
+        
+        async function takeControl() {
+            if (!currentTaskId) return;
+            
+            try {
+                // Direct API call to Browser-Use Cloud
+                const response = await fetch(`https://api.browser-use.com/api/v1/task/${currentTaskId}/takeover`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer bu_IRV0ZClvThVay3xjvksP0GSR-vfk2xWX4HyB8zjllwo'
+                    }
+                });
+                
+                if (response.ok) {
+                    updateStatus('Human control activated');
+                    document.getElementById('takeover-btn').textContent = '🎮 Controlling';
+                    document.getElementById('takeover-btn').disabled = true;
+                }
+            } catch (error) {
+                console.error('Failed to take control:', error);
+            }
+        }
+        
+        function refreshBrowser() {
+            const frame = document.getElementById('browser-frame');
+            if (frame.src) {
+                frame.src = frame.src;
+                updateStatus('Browser refreshed');
+            }
+        }
+        
+        function updateStatus(status) {
+            document.getElementById('status-text').textContent = status;
+        }
+        
+        function updateTaskInfo(info) {
+            const container = document.getElementById('task-info-container');
+            container.innerHTML = `
+                <div class="info-item">
+                    <span class="info-label">Status:</span> ${info.status}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Task:</span> ${info.task}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Task ID:</span> ${info.taskId || 'N/A'}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Preview URL:</span> 
+                    <a href="${info.previewUrl}" target="_blank" style="color: #00ff00;">${info.previewUrl}</a>
+                </div>
+            `;
+        }
+        
+        // Handle Enter key in textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('task-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    executeTask();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

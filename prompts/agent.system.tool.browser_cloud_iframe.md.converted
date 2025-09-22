@@ -1,0 +1,27 @@
+## browser_cloud_iframe
+
+Opens Browser Use Cloud in the operations panel iframe for visual browser automation.
+Use this when you need to:
+- Show the user a live browser session
+- Perform complex browser automation visually
+- Let the user take control of browser tasks
+
+Arguments:
+- task: Description of what to do in the browser
+- url: Optional starting URL
+
+This opens a browser window with live preview where:
+- You can watch AI navigate websites
+- User can take control when needed
+- Browser session is visible and interactive
+
+Usage:
+~~~json
+{
+  "tool_name": "browser_cloud_iframe",
+  "tool_args": {
+    "task": "Search for AI news on Google",
+    "url": "https://google.com"
+  }
+}
+~~~

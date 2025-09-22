@@ -1,0 +1,4 @@
+# Additional packages for Legacy Compass Ghost AI integration
+supabase==2.18.1
+falkordb==1.2.0
+graphrag-sdk==0.8.0

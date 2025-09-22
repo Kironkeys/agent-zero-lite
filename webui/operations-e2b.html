@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E2B Operations Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        #e2b-viewer-container {
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div id="e2b-viewer-container"></div>
+    
+    <!-- Load the E2B Canvas Viewer with absolute path -->
+    <script src="/js/e2b-canvas-viewer.js"></script>
+    
+    <script>
+        console.log('📄 operations-e2b.html script starting...');
+        console.log('📍 Current location:', window.location.href);
+        
+        // Fallback: Load script dynamically if not loaded
+        function loadE2BViewer() {
+            if (typeof window.E2BCanvasViewer === 'undefined') {
+                console.log('⚠️ E2BCanvasViewer not found, loading dynamically...');
+                const script = document.createElement('script');
+                script.src = '/js/e2b-canvas-viewer.js';
+                script.onload = () => {
+                    console.log('✅ E2B script loaded dynamically');
+                    initializeE2B();
+                };
+                script.onerror = (e) => {
+                    console.error('❌ Failed to load E2B script:', e);
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('✅ E2BCanvasViewer already loaded');
+                initializeE2B();
+            }
+        }
+        
+        function initializeE2B() {
+            console.log('🚀 Initializing E2B viewer...');
+            if (typeof window.E2BCanvasViewer !== 'undefined') {
+                // Initialize the viewer if not already done
+                if (!window.e2bViewer) {
+                    window.e2bViewer = new E2BCanvasViewer('e2b-viewer-container');
+                    console.log('✅ E2B Viewer created:', window.e2bViewer);
+                }
+                
+                // Auto-connect immediately - safe and ensures it's ready
+                console.log('🔌 Auto-connecting E2B viewer WebSocket...');
+                window.e2bViewer.connect();
+                console.log('✅ E2B Viewer auto-connected and ready!');
+            } else {
+                console.error('❌ E2BCanvasViewer class still not available');
+            }
+        }
+        
+        // Try loading immediately
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🔧 DOM Content Loaded');
+            loadE2BViewer();
+        });
+        
+        // Auto-connect when page loads
+        window.addEventListener('load', () => {
+            console.log('🔧 E2B Operations page loaded event fired');
+        });
+        
+        // Listen for messages from parent (Ghost UI)
+        window.addEventListener('message', (event) => {
+            console.log('📨 Received message:', event.data);
+            
+            if (event.data.type === 'e2b-command') {
+                // Handle commands from Ghost
+                console.log('E2B command received:', event.data);
+            }
+            
+            // Handle VNC URL from parent
+            if (event.data.type === 'e2b-vnc' && event.data.vncUrl) {
+                console.log('🎥 VNC URL received:', event.data.vncUrl);
+                if (window.e2bViewer && window.e2bViewer.showLiveStream) {
+                    window.e2bViewer.showLiveStream(event.data.vncUrl);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

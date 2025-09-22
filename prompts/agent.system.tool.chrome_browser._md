@@ -1,0 +1,241 @@
+### chrome_browser:
+
+🔴 LIVE BROWSER - User can take control anytime!
+Advanced Chrome browser control with Stackblitz IDE and Universe.io integration
+Uses browser-use for intelligent AI-driven browser automation
+Can browse websites, extract elements, grab code, and control Stackblitz IDE
+
+IMPORTANT: This is a REAL browser window that:
+- Opens visibly on screen (not headless)
+- User can click, type, scroll at ANY time
+- Ghost and user control is synchronized
+- Changes user makes are immediately visible to Ghost
+
+Actions:
+- start: Launch Chrome browser with AI control
+- navigate: Open any URL for browsing
+- stackblitz: Open/create Stackblitz projects
+- screenshot: Capture current page
+- control: AI-driven browser control with natural language
+- pause: PAUSE for user to take control (seconds parameter)
+- click: Click specific element
+- type: Type text input
+- execute_js: Run JavaScript code
+- stop: Close browser
+- status: Check browser state
+
+Special capabilities:
+- Browse Universe.io to find UI components and grab code
+- Extract design elements from any website
+- Control Stackblitz IDE for live coding
+- Intelligent page understanding with vision AI
+- Automatic CAPTCHA detection and handling
+
+COLLABORATION MODE - Perfect for CAPTCHAs & Logins:
+When you encounter CAPTCHA, login form, or user says "let me do it":
+```json
+{
+  "thoughts": ["CAPTCHA detected - pausing for user to solve it"],
+  "headline": "Pausing for user to handle CAPTCHA/login",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "pause",
+    "seconds": 60
+  }
+}
+```
+
+After pause, always take screenshot to see what changed:
+```json
+{
+  "thoughts": ["Checking what user did during pause"],
+  "headline": "Resuming after user control",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "screenshot"
+  }
+}
+```
+
+WORKFLOW EXAMPLE:
+1. Ghost navigates to site requiring login
+2. Ghost detects login form → pauses for user
+3. User logs in with credentials
+4. User messages "continue" or "logged in"
+5. Ghost takes screenshot, sees logged-in state
+6. Ghost continues with the task
+
+Usage examples:
+
+Start browser and open Universe.io:
+```json
+{
+  "thoughts": ["I'll start Chrome and browse Universe.io for UI components"],
+  "headline": "Launching Chrome for Universe.io browsing",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "start"
+  }
+}
+```
+
+Navigate to Universe.io and find components:
+```json
+{
+  "thoughts": ["Navigating to Universe.io to find design components"],
+  "headline": "Browsing Universe.io component library",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "navigate",
+    "url": "https://universe.io"
+  }
+}
+```
+
+Use AI to extract component code:
+```json
+{
+  "thoughts": ["I'll use AI to find and extract the button component code"],
+  "headline": "Extracting button component from Universe.io",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "control",
+    "instruction": "Find the primary button component, click on it to view the code, then copy the implementation code"
+  }
+}
+```
+
+Open Stackblitz with React template:
+```json
+{
+  "thoughts": ["Creating new Stackblitz project for the design"],
+  "headline": "Opening Stackblitz IDE with React",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "stackblitz",
+    "template": "react"
+  }
+}
+```
+
+AI control for complex tasks:
+```json
+{
+  "thoughts": ["I'll use AI to implement the extracted component in Stackblitz"],
+  "headline": "Implementing component in Stackblitz",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "control",
+    "instruction": "In the Stackblitz editor, create a new file called Button.jsx and paste the button component code we copied from Universe.io, then update App.jsx to import and use this button"
+  }
+}
+```
+
+Browse any website for inspiration:
+```json
+{
+  "thoughts": ["Browsing Dribbble for design inspiration"],
+  "headline": "Finding design patterns on Dribbble",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "control",
+    "instruction": "Go to dribbble.com, search for 'dashboard UI', and find the most popular dark theme dashboard design"
+  }
+}
+```
+
+Extract colors and styles:
+```json
+{
+  "thoughts": ["Extracting color palette from the design"],
+  "headline": "Getting color scheme from website",
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "execute_js",
+    "code": "Array.from(document.querySelectorAll('*')).map(el => getComputedStyle(el).backgroundColor).filter(c => c && c !== 'rgba(0, 0, 0, 0)').filter((v,i,a) => a.indexOf(v) === i)"
+  }
+}
+```
+
+ADVANCED CAPABILITIES (browser-use 2.5):
+
+Multi-tab browsing:
+```json
+{
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "multi_tab",
+    "tabs": ["https://universe.io", "https://dribbble.com", "https://github.com"]
+  }
+}
+```
+
+Parallel task execution:
+```json
+{
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "parallel",
+    "tasks": [
+      "Find the best React component on Universe.io",
+      "Check trending designs on Dribbble",
+      "Search for animation libraries on GitHub"
+    ]
+  }
+}
+```
+
+File operations:
+```json
+{
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "download",
+    "url": "https://example.com/template.zip",
+    "filename": "template.zip"
+  }
+}
+```
+
+Data extraction with AI:
+```json
+{
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "extract",
+    "selector": ".product-card",
+    "model": "structured_json"
+  }
+}
+```
+
+Smart scrolling:
+```json
+{
+  "tool_name": "chrome_browser",
+  "tool_args": {
+    "action": "scroll",
+    "direction": "down",
+    "amount": 5
+  }
+}
+```
+
+Important notes:
+- Browser runs in GUI mode - LIVE and visible
+- Uses Ghost's OpenRouter browser model with browser-use latest
+- AI vision enabled for intelligent page understanding
+- Can extract code, colors, layouts from any site
+- Stackblitz integration for live development
+- Universe.io for UI component library
+- Automatic screenshot streaming to UI
+- Persistent browser session across commands
+- Multi-tab and parallel task support
+- File upload/download capabilities
+- Smart data extraction with AI
+- Human-like typing with variable delays (50-150ms per character)
+- Natural mouse movements and scrolling patterns
+- Mind2Web trained patterns for realistic browsing
+- Automatic CAPTCHA/login detection with user handoff
+- Integration support for Discord, Slack, Gmail (with 2FA)
+- Works seamlessly with Ghost's existing MCP capabilities

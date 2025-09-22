@@ -1,0 +1,289 @@
+/* Ghost Panel Styles with Push Effect */
+
+/* Ensure smooth transitions for main content */
+.chat-container,
+main,
+.main-content,
+.chat-messages,
+.container {
+    transition: margin-right 0.3s ease-out;
+}
+
+/* When panel is open, content push is handled dynamically by JS */
+body.ghost-panel-open .chat-container,
+body.ghost-panel-open main,
+body.ghost-panel-open .main-content,
+body.ghost-panel-open .chat-messages,
+body.ghost-panel-open .container {
+    /* Margin-right is set dynamically by JavaScript based on panel width */
+}
+
+/* Ensure input area also moves */
+body.ghost-panel-open #chat-input-container,
+body.ghost-panel-open .input-container {
+    /* Margin-right is set dynamically by JavaScript based on panel width */
+}
+
+/* Ghost tab highlight when panel is open - more subtle */
+body.ghost-panel-open #ghost-tab {
+    background: rgba(255, 215, 0, 0.1);  /* Very light background */
+    border-bottom: 2px solid #FFD700;  /* Only bottom border highlight */
+}
+
+/* Ensure proper stacking - removed box-shadow to eliminate visual line */
+#phantom-console {
+    /* box-shadow removed - using fixed width with no borders */
+}
+
+/* Resize handle removed - using fixed width of 650px */
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    /* Max width reduced on smaller screens */
+    #phantom-console {
+        max-width: 600px;
+    }
+}
+
+/* Small screens - overlay instead of push */
+@media (max-width: 768px) {
+    body.ghost-panel-open .chat-container,
+    body.ghost-panel-open main,
+    body.ghost-panel-open .main-content,
+    body.ghost-panel-open .chat-messages,
+    body.ghost-panel-open .container,
+    body.ghost-panel-open .chat-input-container,
+    body.ghost-panel-open .input-container {
+        margin-right: 0 !important;
+    }
+    
+    #phantom-console {
+        width: 100% !important;
+        max-width: 400px !important;
+    }
+}
+
+/* Presentation Editor Styles */
+#slide-editor[contenteditable]:empty:before {
+    content: attr(data-placeholder);
+    color: #666;
+    font-style: italic;
+}
+
+#slide-editor[contenteditable]:focus {
+    outline: 1px solid #4A90E2;
+}
+
+/* Editor toolbar hover effects */
+#editor-toolbar button:hover:not(:disabled) {
+    background: #3a3a3a;
+    border-color: #444;
+}
+
+#editor-toolbar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Text toolbar hover effects */
+.text-tool:hover {
+    background: #3a3a3a;
+    border-color: #444;
+}
+
+.text-tool:active {
+    background: #1a1a1a;
+}
+
+/* Slide thumbnail hover effects */
+.editor-slide-thumb:hover {
+    background: #222 !important;
+    border-color: #444 !important;
+}
+
+.editor-slide-thumb.dragging {
+    opacity: 0.5;
+}
+
+/* Smooth transitions for buttons */
+#editor-toolbar button,
+.text-tool {
+    transition: all 0.2s ease;
+}
+
+/* Save button special styling */
+#save-presentation-btn {
+    background: #4A90E2 !important;
+    transition: all 0.3s ease;
+}
+
+#save-presentation-btn:hover:not(:disabled) {
+    background: #357ABD !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+#save-presentation-btn:disabled {
+    background: #666 !important;
+    cursor: not-allowed;
+}
+
+/* Heading select styling */
+#heading-select {
+    cursor: pointer;
+}
+
+#heading-select:hover {
+    background: #3a3a3a;
+    border-color: #444;
+}
+
+/* Color picker styling */
+input[type="color"] {
+    cursor: pointer;
+}
+
+input[type="color"]:hover {
+    border-color: #444;
+}
+
+/* Drag and drop visual feedback */
+.editor-slide-thumb.drag-over {
+    border-top: 3px solid #4A90E2 !important;
+}
+
+/* Edit tab content proper display */
+#pres-edit.pres-content {
+    display: none;
+    flex-direction: column;
+}
+
+#pres-edit.pres-content[style*="display: flex"] {
+    display: flex !important;
+}
+
+/* Ensure proper scrolling in editor */
+#slide-editor-nav::-webkit-scrollbar {
+    height: 6px;
+}
+
+#slide-editor-nav::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+#slide-editor-nav::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+#slide-editor-nav::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
+
+/* Editor slide thumbnails hover effect */
+.editor-slide-thumb {
+    transition: all 0.2s ease;
+}
+
+.editor-slide-thumb:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Fix button groups */
+#editor-toolbar > div {
+    display: flex;
+    align-items: center;
+}
+
+#text-toolbar > div {
+    display: flex;
+    align-items: center;
+}
+
+/* Ensure buttons don't get cut off */
+#editor-toolbar button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add Slide button special case */
+#add-slide-btn {
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Presentation editor layout fixes */
+#presentation-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Ensure edit content displays properly */
+#pres-edit {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Editor content area should fill space */
+#pres-edit > div:last-child {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Slide editor wrapper */
+#pres-edit > div:last-child > div:first-child {
+    flex: 1;
+    min-height: 0;
+}
+
+/* Slide editor content box */
+#slide-editor {
+    height: 100%;
+}
+
+/* Bottom slide navigator */
+#slide-editor-nav {
+    flex-shrink: 0;
+}
+
+/* Prevent button text overflow */
+#editor-toolbar button,
+#text-toolbar button {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Editor slide thumbnails */
+.editor-slide-thumb {
+    scroll-snap-align: start;
+}
+
+#editor-slide-list {
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+}
+
+/* Hide scrollbar but keep functionality */
+#slide-editor-nav {
+    scrollbar-width: thin;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    #editor-toolbar {
+        flex-wrap: wrap;
+    }
+    
+    #text-toolbar {
+        flex-wrap: wrap;
+    }
+}

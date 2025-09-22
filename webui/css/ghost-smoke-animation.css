@@ -1,0 +1,367 @@
+/* Ghost Smoke Animation for Microphone Button */
+
+/* Ghost button container - shiny metallic white ring */
+.ghost-voice-button {
+    position: relative;
+    background: radial-gradient(circle at 30% 30%, 
+        rgba(255, 255, 255, 0.05) 0%, 
+        transparent 70%);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    overflow: visible;
+    z-index: 10;
+    padding: 0;
+    box-shadow: 
+        0 2px 8px rgba(255, 255, 255, 0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Microphone icon - shiny white with subtle glow */
+.ghost-voice-button .ghost-logo {
+    width: 24px !important;
+    height: 24px !important;
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(255, 255, 255, 0.4));
+    transition: all 0.4s ease;
+    opacity: 1;
+    z-index: 2;
+    position: relative;
+    object-fit: contain;
+}
+
+/* Smoke particles container */
+.ghost-voice-button::before,
+.ghost-voice-button::after,
+.ghost-smoke-particle {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+}
+
+/* Base smoke effect */
+.ghost-voice-button::before {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, 
+        transparent 40%, 
+        rgba(0, 255, 128, 0.03) 60%, 
+        transparent 100%);
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(1);
+    transition: opacity 0.4s ease;
+}
+
+/* Glow ring effect */
+.ghost-voice-button::after {
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    top: -10px;
+    left: -10px;
+    border: 2px solid rgba(0, 255, 128, 0);
+    border-radius: 50%;
+    transition: all 0.4s ease;
+}
+
+/* Connected state - green border with white smoke glow */
+.ghost-voice-button.mic-connected,
+.ghost-voice-button.hume-connected {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(0, 255, 128, 0.8);
+    animation: border-pulsate 3.5s ease-in-out infinite;
+    box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.3),
+        0 0 40px rgba(255, 255, 255, 0.2),
+        0 0 50px rgba(255, 255, 255, 0.1);
+}
+
+/* Recording state - green border with white smoke glow */
+.ghost-voice-button.mic-recording {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(0, 255, 128, 0.9);
+    animation: border-pulsate 3s ease-in-out infinite;
+    box-shadow: 
+        0 0 35px rgba(255, 255, 255, 0.4),
+        0 0 45px rgba(255, 255, 255, 0.25),
+        0 0 60px rgba(255, 255, 255, 0.15);
+}
+
+.ghost-voice-button.mic-connected .ghost-logo,
+.ghost-voice-button.hume-connected .ghost-logo,
+.ghost-voice-button.mic-recording .ghost-logo {
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(0, 255, 128, 0.4));
+    opacity: 1;
+}
+
+/* Listening/Processing state - purple glow with mystical smoke */
+.ghost-voice-button.hume-listening,
+.ghost-voice-button.mic-listening {
+    background: linear-gradient(135deg, #1a0a2a 0%, #0a051a 100%);
+    border-color: rgba(138, 43, 226, 0.4);
+    box-shadow: 
+        0 0 40px rgba(138, 43, 226, 0.3),
+        inset 0 0 25px rgba(138, 43, 226, 0.08);
+}
+
+.ghost-voice-button.hume-listening::before,
+.ghost-voice-button.mic-listening::before {
+    opacity: 1;
+    background: radial-gradient(circle at center, 
+        transparent 35%, 
+        rgba(138, 43, 226, 0.06) 55%, 
+        transparent 100%);
+    animation: smoke-mystical 2s ease-in-out infinite;
+}
+
+/* Dynamic smoke particles - hidden by default */
+.ghost-smoke-container {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: -1;
+    display: none;  /* Hidden by default */
+}
+
+/* Show smoke only when connected or recording */
+.ghost-voice-button.mic-connected .ghost-smoke-container,
+.ghost-voice-button.mic-recording .ghost-smoke-container {
+    display: none;  /* Disable smoke particles */
+}
+
+.ghost-smoke-particle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle at center, 
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.15) 20%,
+        rgba(255, 255, 255, 0.08) 40%,
+        rgba(255, 255, 255, 0.03) 60%,
+        transparent 80%);
+    border-radius: 50%;
+    opacity: 0;
+    filter: blur(4px);
+    transform-origin: center center;
+}
+
+/* Create multiple overlapping smoke layers */
+.ghost-smoke-particle::before,
+.ghost-smoke-particle::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    border-radius: inherit;
+    opacity: 0.6;
+}
+
+.ghost-smoke-particle::before {
+    transform: scale(0.8) translateX(-5px);
+}
+
+.ghost-smoke-particle::after {
+    transform: scale(1.2) translateX(5px);
+}
+
+.ghost-voice-button.mic-connected .ghost-smoke-particle,
+.ghost-voice-button.hume-connected .ghost-smoke-particle,
+.ghost-voice-button.mic-recording .ghost-smoke-particle {
+    animation: smoke-swirl 6s ease-in-out infinite;
+}
+
+.ghost-smoke-particle:nth-child(1) { animation-delay: 0s; left: 50%; top: 50%; }
+.ghost-smoke-particle:nth-child(2) { animation-delay: 1s; left: 50%; top: 50%; }
+.ghost-smoke-particle:nth-child(3) { animation-delay: 2s; left: 50%; top: 50%; }
+.ghost-smoke-particle:nth-child(4) { animation-delay: 3s; left: 50%; top: 50%; }
+.ghost-smoke-particle:nth-child(5) { animation-delay: 4s; left: 50%; top: 50%; }
+.ghost-smoke-particle:nth-child(6) { animation-delay: 5s; left: 50%; top: 50%; }
+
+/* Animations */
+@keyframes smoke-idle {
+    0%, 100% { 
+        transform: scale(1) translateY(0);
+        opacity: 0.3;
+    }
+    50% { 
+        transform: scale(1.3) translateY(-5px);
+        opacity: 0.6;
+    }
+}
+
+@keyframes smoke-active {
+    0%, 100% { 
+        transform: scale(1) translateY(0) rotate(0deg);
+        opacity: 0.4;
+    }
+    25% { 
+        transform: scale(1.2) translateY(-3px) rotate(5deg);
+        opacity: 0.7;
+    }
+    50% { 
+        transform: scale(1.4) translateY(-6px) rotate(-5deg);
+        opacity: 0.5;
+    }
+    75% { 
+        transform: scale(1.1) translateY(-2px) rotate(3deg);
+        opacity: 0.8;
+    }
+}
+
+@keyframes smoke-mystical {
+    0%, 100% { 
+        transform: scale(1) translateY(0) rotate(0deg);
+        opacity: 0.3;
+    }
+    33% { 
+        transform: scale(1.5) translateY(-8px) rotate(120deg);
+        opacity: 0.5;
+    }
+    66% { 
+        transform: scale(1.3) translateY(-4px) rotate(240deg);
+        opacity: 0.4;
+    }
+}
+
+@keyframes smoke-swirl {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateX(15px) scale(0.6);
+        opacity: 0;
+    }
+    20% {
+        transform: translate(-50%, -50%) rotate(72deg) translateX(18px) scale(0.8);
+        opacity: 0.4;
+    }
+    40% {
+        transform: translate(-50%, -50%) rotate(144deg) translateX(20px) scale(1);
+        opacity: 0.5;
+    }
+    60% {
+        transform: translate(-50%, -50%) rotate(216deg) translateX(18px) scale(0.9);
+        opacity: 0.4;
+    }
+    80% {
+        transform: translate(-50%, -50%) rotate(288deg) translateX(15px) scale(0.7);
+        opacity: 0.3;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateX(15px) scale(0.6);
+        opacity: 0;
+    }
+}
+
+@keyframes border-pulsate {
+    0%, 100% { 
+        border-color: rgba(0, 255, 128, 0.4);
+        box-shadow: 
+            0 0 20px rgba(255, 255, 255, 0.2),
+            0 0 30px rgba(255, 255, 255, 0.1);
+    }
+    50% { 
+        border-color: rgba(0, 255, 128, 1);
+        box-shadow: 
+            0 0 40px rgba(255, 255, 255, 0.5),
+            0 0 60px rgba(255, 255, 255, 0.3),
+            0 0 80px rgba(255, 255, 255, 0.1);
+    }
+}
+
+@keyframes glow-pulse {
+    0%, 100% { 
+        transform: scale(1);
+        opacity: 0.5;
+        box-shadow: 0 0 20px rgba(0, 255, 128, 0.3);
+    }
+    50% { 
+        transform: scale(1.05);
+        opacity: 0.8;
+        box-shadow: 0 0 30px rgba(0, 255, 128, 0.5);
+    }
+}
+
+
+@keyframes ghost-breathe {
+    0%, 100% { 
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    50% { 
+        transform: scale(1.05) rotate(5deg);
+    }
+    75% {
+        transform: scale(1.15) rotate(-3deg);
+    }
+}
+
+/* Speaking animation */
+.ghost-voice-button.hume-speaking {
+    background: linear-gradient(135deg, #2a1a3a 0%, #1a0a2a 100%);
+    border-color: rgba(138, 43, 226, 0.6);
+    animation: speaking-pulse 0.5s ease-in-out infinite;
+}
+
+.ghost-voice-button.hume-speaking .ghost-logo {
+    filter: brightness(2.5) hue-rotate(270deg) drop-shadow(0 0 20px rgba(138, 43, 226, 1));
+    animation: ghost-speak 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes speaking-pulse {
+    0%, 100% { 
+        box-shadow: 
+            0 0 40px rgba(138, 43, 226, 0.4),
+            inset 0 0 25px rgba(138, 43, 226, 0.1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 60px rgba(138, 43, 226, 0.6),
+            inset 0 0 35px rgba(138, 43, 226, 0.2);
+    }
+}
+
+@keyframes ghost-speak {
+    0% { transform: scale(1) translateY(0); }
+    100% { transform: scale(1.2) translateY(-2px); }
+}
+
+/* Add smoke wisps on hover */
+.ghost-voice-button:hover {
+    transform: scale(1.05);
+}
+
+.ghost-voice-button:hover::before {
+    opacity: 0.8;
+    animation-duration: 2s;
+}
+
+/* Disabled state */
+.ghost-voice-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    border-color: rgba(128, 128, 128, 0.2);
+}
+
+.ghost-voice-button:disabled::before,
+.ghost-voice-button:disabled::after {
+    animation: none;
+    opacity: 0;
+}
+
+/* Mobile touch feedback */
+@media (hover: none) {
+    .ghost-voice-button:active {
+        transform: scale(0.95);
+    }
+}

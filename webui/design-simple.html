@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Design Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 12px 20px;
+            border-bottom: 1px solid #2a2a3e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            background: #2a2a3e;
+            color: #888;
+        }
+        
+        .status.running {
+            background: #1b5e20;
+            color: #81c784;
+        }
+        
+        .status.loading {
+            background: #e65100;
+            color: #ffcc80;
+        }
+        
+        .preview-container {
+            flex: 1;
+            position: relative;
+            background: #1a1a1a;
+        }
+        
+        #preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .loading-overlay.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a2a3e;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: #888;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            background: #2a2a3e;
+            border: 1px solid #3a3a4e;
+            color: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .btn:hover {
+            background: #3a3a4e;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">
+            🎨 Design Preview
+            <span id="status" class="status">Waiting</span>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="reloadPreview()">🔄 Reload</button>
+            <button class="btn" onclick="openInNewTab()">🔗 Open in Tab</button>
+        </div>
+    </div>
+    
+    <div class="preview-container">
+        <div id="loading" class="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Waiting for Ghost to create your app...</div>
+        </div>
+        <iframe id="preview-frame" src="about:blank"></iframe>
+    </div>
+    
+    <script>
+        let currentUrl = null;
+        let checkInterval = null;
+        
+        // Check if dev server is running
+        async function checkDevServer() {
+            const ports = [3000, 3001, 5173, 5174]; // Common Vite/React ports
+            
+            for (const port of ports) {
+                try {
+                    const response = await fetch(`http://localhost:${port}`, {
+                        mode: 'no-cors'
+                    });
+                    return port;
+                } catch (e) {
+                    // Server not ready on this port
+                }
+            }
+            return null;
+        }
+        
+        // Load preview when server is ready
+        async function loadPreview() {
+            const port = await checkDevServer();
+            
+            if (port) {
+                currentUrl = `http://localhost:${port}`;
+                document.getElementById('preview-frame').src = currentUrl;
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('status').textContent = `Running on :${port}`;
+                document.getElementById('status').className = 'status running';
+                
+                // Stop checking
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                    checkInterval = null;
+                }
+            }
+        }
+        
+        // Reload preview
+        function reloadPreview() {
+            if (currentUrl) {
+                document.getElementById('preview-frame').src = currentUrl;
+            } else {
+                loadPreview();
+            }
+        }
+        
+        // Open in new tab
+        function openInNewTab() {
+            if (currentUrl) {
+                window.open(currentUrl, '_blank');
+            }
+        }
+        
+        // Listen for messages from parent frame
+        window.addEventListener('message', async (event) => {
+            if (event.data.type === 'check-server') {
+                // Ghost is telling us to check for a dev server
+                document.getElementById('status').textContent = 'Starting server...';
+                document.getElementById('status').className = 'status loading';
+                
+                // Wait a bit for server to start
+                setTimeout(() => {
+                    loadPreview();
+                }, 2000);
+            }
+            
+            if (event.data.type === 'load-preview') {
+                // Direct load command with port
+                const port = event.data.port || 3000;
+                currentUrl = `http://localhost:${port}`;
+                document.getElementById('preview-frame').src = currentUrl;
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('status').textContent = `Running on :${port}`;
+                document.getElementById('status').className = 'status running';
+            }
+        });
+        
+        // Auto-check every 3 seconds if no preview loaded
+        checkInterval = setInterval(() => {
+            if (!currentUrl) {
+                loadPreview();
+            }
+        }, 3000);
+        
+        // Initial check
+        loadPreview();
+    </script>
+</body>
+</html>

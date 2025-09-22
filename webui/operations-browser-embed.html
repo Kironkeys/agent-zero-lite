@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Browser Operations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+        }
+        
+        .status-dot.active {
+            background: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        
+        /* Main Container */
+        .container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.5);
+            border-right: 1px solid rgba(0, 255, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-section h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .url-input {
+            width: 100%;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .control-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #00ff00, #00aa00);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .control-btn:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+        
+        .action-btn:hover:not(:disabled) {
+            background: rgba(0, 255, 0, 0.3);
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Browser Panel */
+        .browser-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+        
+        .browser-header {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .browser-frame-container {
+            flex: 1;
+            position: relative;
+            background: #111;
+        }
+        
+        #browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        
+        .browser-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+        
+        .ghost-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Status Info */
+        .status-info {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #aaa;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .status-line {
+            margin-bottom: 5px;
+        }
+        
+        .status-label {
+            color: #00ff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Ready</span>
+        <div style="margin-left: auto; color: #00ff00; font-family: monospace;">
+            Ghost Browser Operations
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-section">
+                <h3>Browser URL</h3>
+                <input type="text" 
+                       id="browser-url-input" 
+                       class="url-input" 
+                       placeholder="Waiting for Browser Use URL..."
+                       readonly>
+                <button class="control-btn" onclick="manualEmbed()">Manual Embed</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>Controls</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    <button class="action-btn" onclick="refreshFrame()">🔄 Refresh</button>
+                    <button class="action-btn" onclick="clearFrame()">🗑️ Clear</button>
+                    <button class="action-btn" id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <h3>Status</h3>
+                <div class="status-info" id="status-info">
+                    <div class="status-line">
+                        <span class="status-label">State:</span> Waiting for Browser Use
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Browser Panel -->
+        <div class="browser-panel">
+            <div class="browser-header">
+                <span>Browser Preview</span>
+                <span style="margin-left: auto; color: #666; font-size: 12px;" id="current-url">No active session</span>
+            </div>
+            
+            <div class="browser-frame-container" id="browser-container">
+                <div class="browser-placeholder" id="browser-placeholder">
+                    <div class="ghost-icon">👻</div>
+                    <h3>Browser Use Preview</h3>
+                    <p>Waiting for Ghost to return a Browser Use URL...</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: #444;">
+                        URLs will be automatically detected and embedded
+                    </p>
+                </div>
+                <iframe id="browser-frame" style="display: none;" allow="clipboard-read; clipboard-write"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentBrowserUrl = null;
+        let lastMessageTime = null;
+        
+        // Auto-detect Browser Use URLs from Ghost messages
+        function setupGhostListener() {
+            // Listen for Ghost messages if parent window exists
+            if (window.parent !== window) {
+                window.addEventListener('message', handleGhostMessage);
+            }
+            
+            // Also monitor for DOM changes if embedded in Ghost UI
+            if (window.MutationObserver) {
+                observeGhostMessages();
+            }
+        }
+        
+        function handleGhostMessage(event) {
+            // Check if message contains Browser Use URL
+            if (event.data && typeof event.data === 'string') {
+                detectBrowserUrl(event.data);
+            } else if (event.data && event.data.message) {
+                detectBrowserUrl(event.data.message);
+            }
+        }
+        
+        function observeGhostMessages() {
+            // Watch for new messages in Ghost's chat container
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.textContent) {
+                            detectBrowserUrl(node.textContent);
+                        }
+                    });
+                });
+            });
+            
+            // Try to find Ghost's message container
+            setTimeout(() => {
+                const containers = [
+                    document.querySelector('.message-container'),
+                    document.querySelector('#messages'),
+                    document.querySelector('.chat-messages'),
+                    document.body
+                ];
+                
+                const target = containers.find(c => c !== null);
+                if (target) {
+                    observer.observe(target, {
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+                }
+            }, 1000);
+        }
+        
+        function detectBrowserUrl(text) {
+            if (!text) return;
+            
+            // Pattern to match Browser Use Cloud URLs
+            const patterns = [
+                /https:\/\/cloud\.browser-use\.com\/[^\s]+/g,
+                /https:\/\/browser-use\.com\/[^\s]+/g,
+                /https:\/\/[^\/]+\.browser-use\.com\/[^\s]+/g
+            ];
+            
+            for (const pattern of patterns) {
+                const matches = text.match(pattern);
+                if (matches && matches.length > 0) {
+                    const url = matches[0];
+                    // Clean up URL (remove any trailing punctuation)
+                    const cleanUrl = url.replace(/[.,;:!?)}\]]+$/, '');
+                    
+                    if (cleanUrl !== currentBrowserUrl) {
+                        embedBrowserUrl(cleanUrl);
+                        return;
+                    }
+                }
+            }
+        }
+        
+        function embedBrowserUrl(url) {
+            currentBrowserUrl = url;
+            lastMessageTime = new Date();
+            
+            // Update UI
+            document.getElementById('browser-url-input').value = url;
+            document.getElementById('current-url').textContent = url;
+            document.getElementById('status-dot').classList.add('active');
+            document.getElementById('status-text').textContent = 'Browser Active';
+            
+            // Update status info
+            updateStatus({
+                state: 'Active',
+                url: url,
+                time: lastMessageTime.toLocaleTimeString()
+            });
+            
+            // Embed iframe
+            const frame = document.getElementById('browser-frame');
+            const placeholder = document.getElementById('browser-placeholder');
+            
+            frame.src = url;
+            frame.style.display = 'block';
+            placeholder.style.display = 'none';
+            
+            console.log('✅ Browser Use embedded:', url);
+        }
+        
+        function manualEmbed() {
+            const input = document.getElementById('browser-url-input');
+            const url = prompt('Enter Browser Use URL:', input.value || '');
+            
+            if (url && url.includes('browser-use.com')) {
+                embedBrowserUrl(url);
+            } else if (url) {
+                alert('Invalid Browser Use URL');
+            }
+        }
+        
+        function refreshFrame() {
+            const frame = document.getElementById('browser-frame');
+            if (frame.src) {
+                frame.src = frame.src;
+                updateStatus({ action: 'Refreshed' });
+            }
+        }
+        
+        function clearFrame() {
+            const frame = document.getElementById('browser-frame');
+            const placeholder = document.getElementById('browser-placeholder');
+            
+            frame.src = '';
+            frame.style.display = 'none';
+            placeholder.style.display = 'block';
+            
+            document.getElementById('browser-url-input').value = '';
+            document.getElementById('current-url').textContent = 'No active session';
+            document.getElementById('status-dot').classList.remove('active');
+            document.getElementById('status-text').textContent = 'Ready';
+            
+            currentBrowserUrl = null;
+            updateStatus({ state: 'Cleared' });
+        }
+        
+        function toggleFullscreen() {
+            const container = document.getElementById('browser-container');
+            
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().then(() => {
+                    document.getElementById('fullscreen-btn').textContent = '⊡ Exit';
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    document.getElementById('fullscreen-btn').textContent = '⛶ Fullscreen';
+                });
+            }
+        }
+        
+        function updateStatus(info) {
+            const statusDiv = document.getElementById('status-info');
+            const lines = [];
+            
+            if (info.state) {
+                lines.push(`<span class="status-label">State:</span> ${info.state}`);
+            }
+            if (info.url) {
+                lines.push(`<span class="status-label">URL:</span> ${info.url.substring(0, 50)}...`);
+            }
+            if (info.time) {
+                lines.push(`<span class="status-label">Time:</span> ${info.time}`);
+            }
+            if (info.action) {
+                lines.push(`<span class="status-label">Action:</span> ${info.action}`);
+            }
+            
+            statusDiv.innerHTML = lines.map(line => `<div class="status-line">${line}</div>`).join('');
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            setupGhostListener();
+            console.log('👻 Ghost Browser Operations ready - listening for Browser Use URLs');
+        });
+        
+        // Also listen for direct API calls if integrated with Ghost backend
+        if (window.location.hostname === 'localhost') {
+            // Poll Ghost's message endpoint for Browser Use URLs
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/api/last-message');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.message) {
+                            detectBrowserUrl(data.message);
+                        }
+                    }
+                } catch (e) {
+                    // Silent fail - Ghost API might not be available
+                }
+            }, 3000); // Check every 3 seconds
+        }
+    </script>
+</body>
+</html>

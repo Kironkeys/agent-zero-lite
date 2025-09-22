@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  agent-zero:
+    # Use base image with auto-install script
+    image: agent0ai/agent-zero:v0.9.5
+    container_name: agent-zero-lite
+    ports:
+      - "50003:80"
+    extra_hosts:
+      - "dyad.local:host-gateway"  # Allow container to reach host services
+    environment:
+      # CRITICAL: Set Flask to run on port 80 and bind to all interfaces
+      - WEB_UI_PORT=80
+      - WEB_UI_HOST=0.0.0.0
+      # Pass through API keys from .env file
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - OLLAMA_API_BASE=${OLLAMA_API_BASE}
+      - VENICE_API_KEY=${VENICE_API_KEY}
+      # E2B Desktop Configuration
+      - E2B_API_KEY=${E2B_API_KEY}
+      # Hume AI Configuration
+      - HUME_API_KEY=${HUME_API_KEY}
+      - HUME_CLIENT_SECRET=${HUME_CLIENT_SECRET}
+      - HUME_CONFIG_ID=${HUME_CONFIG_ID}
+      # FalkorDB Configuration (replacing Neo4j)
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6381  # Using separate FalkorDB for agent-zero-lite
+      - USE_FALKORDB=true
+      - NEO4J_DISABLED=true
+      # Root password for SSH code execution
+      - ROOT_PASSWORD=${ROOT_PASSWORD}
+    volumes:
+      # Mount entire folder but override memory directory  
+      - .:/a0
+      # Override memory with separate directory for isolation
+      - ./memory-lite:/a0/memory
+      # Mount volume for persistent Python packages
+      - agent-zero-packages:/opt/venv/lib/python3.12/site-packages
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    networks:
+      - agent-network
+    restart: unless-stopped
+    # Use default entrypoint from the image
+    # entrypoint: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # FalkorDB - Lightning fast graph database (replacing Neo4j)
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: agent-zero-falkordb-lite
+    ports:
+      - "6381:6379"    # Redis protocol (separate port for lite)
+      - "3002:3000"    # FalkorDB browser UI (separate port for lite)
+    volumes:
+      - ./falkordb_data:/var/lib/falkordb/data  # FIXED: Mount to actual data directory
+    environment:
+      - MAX_MEMORY=512mb  # Limit memory usage
+    networks:
+      - agent-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+
+volumes:
+  agent-zero-packages:
+    driver: local
+
+networks:
+  agent-network:
+    driver: bridge

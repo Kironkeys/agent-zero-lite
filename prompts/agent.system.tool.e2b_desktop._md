@@ -1,0 +1,81 @@
+# E2B Desktop Tool - SIMPLE ACTIONS ONLY
+
+## 🔴 CRITICAL: Use SIMPLE, SINGLE actions
+
+This tool does NOT support complex instructions. Break tasks into individual steps.
+
+## Actions:
+
+### Start Desktop
+```
+tool_name: e2b_desktop
+action: start
+```
+
+### Navigate (BEST FOR URLS)
+```
+tool_name: e2b_desktop
+action: navigate
+url: https://congress.gov
+```
+
+### Screenshot
+```
+tool_name: e2b_desktop
+action: screenshot
+```
+
+### Click at coordinates
+```
+tool_name: e2b_desktop
+action: click
+x: 500
+y: 300
+```
+
+### Type text
+```
+tool_name: e2b_desktop
+action: type
+text: "firearm laws"
+```
+
+### Simple Control (BASIC ONLY)
+```
+tool_name: e2b_desktop
+action: control
+instruction: "navigate to congress.gov"  # SIMPLE commands only
+```
+
+## ❌ DO NOT USE COMPLEX INSTRUCTIONS
+
+WRONG:
+```
+action: control
+instruction: "Visit 8 websites, search for laws, take screenshots, save to files..."
+```
+
+RIGHT:
+```
+Step 1:
+action: navigate
+url: https://congress.gov
+
+Step 2:
+action: screenshot
+
+Step 3:
+action: type
+text: "firearm"
+```
+
+## For Complex Research Tasks:
+
+Break it down into individual steps:
+1. Navigate to first site
+2. Take screenshot
+3. Navigate to next site
+4. Take screenshot
+5. Repeat for each site
+
+Use SEPARATE tool calls for each action!

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Browser Cloud Operations - AG-UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #666;
+            animation: none;
+        }
+        
+        .status-dot.connecting {
+            background: #ffaa00;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #00ff00;
+            animation: glow 2s infinite;
+        }
+        
+        .status-dot.error {
+            background: #ff3333;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+        }
+        
+        /* Main Content */
+        .container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        /* Task Panel */
+        .task-panel {
+            width: 30%;
+            background: rgba(0, 0, 0, 0.5);
+            border-right: 1px solid rgba(0, 255, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .task-input {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+        }
+        
+        .task-input textarea {
+            width: 100%;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .task-input button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #00ff00, #00aa00);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .task-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .task-input button:disabled {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Event Stream */
+        .event-stream {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .event-item {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .event-type {
+            color: #00ff00;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .event-data {
+            color: #aaa;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        /* Browser Preview */
+        .browser-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+        
+        .browser-controls {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 10px 20px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            padding: 5px 15px;
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+        }
+        
+        .browser-frame-container {
+            flex: 1;
+            position: relative;
+            background: #fff;
+        }
+        
+        #browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .browser-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+        
+        .browser-placeholder .ghost-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Loading State */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 255, 0, 0.3);
+            border-top: 3px solid #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="status-indicator">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Disconnected</span>
+        </div>
+        <div style="margin-left: auto; color: #00ff00; font-family: monospace;">
+            Browser-Use Cloud + AG-UI Protocol
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Task Input Panel -->
+        <div class="task-panel">
+            <div class="task-input">
+                <h3 style="color: #00ff00; margin-bottom: 10px;">Task Input</h3>
+                <textarea id="task-input" placeholder="Enter browser automation task...
+Examples:
+- Navigate to GitHub and create a new repository
+- Open StackBlitz and create a React app
+- Search for AI tools on Google"></textarea>
+                <button id="execute-btn" onclick="executeTask()">Execute Task</button>
+            </div>
+            
+            <div class="event-stream" id="event-stream">
+                <h3 style="color: #00ff00; margin-bottom: 10px;">AG-UI Event Stream</h3>
+            </div>
+        </div>
+        
+        <!-- Browser Preview Panel -->
+        <div class="browser-panel">
+            <div class="browser-controls">
+                <button class="control-btn" onclick="pauseBrowser()">⏸️ Pause</button>
+                <button class="control-btn" onclick="resumeBrowser()">▶️ Resume</button>
+                <button class="control-btn" onclick="refreshBrowser()">🔄 Refresh</button>
+                <span style="margin-left: auto; color: #666;" id="browser-url">No active session</span>
+            </div>
+            
+            <div class="browser-frame-container">
+                <div class="browser-placeholder" id="browser-placeholder">
+                    <div class="ghost-icon">👻</div>
+                    <h3>Browser Cloud Preview</h3>
+                    <p>Execute a task to start browser automation</p>
+                </div>
+                <iframe id="browser-frame" style="display: none;"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <script>
+        let eventSource = null;
+        let currentTaskId = null;
+        let browserPreviewUrl = null;
+        
+        // Initialize AG-UI connection
+        function initAGUI() {
+            updateStatus('connecting');
+            
+            // DISABLED SSE to prevent CPU overload
+            // Will use WebSocket instead
+            console.log('SSE disabled - waiting for WebSocket implementation');
+            updateStatus('error');
+            addEvent('INFO', 'SSE disabled to prevent CPU overload. WebSocket coming soon.');
+            return;
+            
+            // Connect to AG-UI SSE endpoint
+            eventSource = new EventSource('/api/ag-ui');
+            
+            eventSource.onopen = function() {
+                updateStatus('connected');
+                addEvent('CONNECTION', 'Connected to AG-UI Protocol');
+            };
+            
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleAGUIEvent(data);
+                } catch (e) {
+                    console.error('Failed to parse event:', e);
+                }
+            };
+            
+            eventSource.onerror = function(error) {
+                updateStatus('error');
+                addEvent('ERROR', 'Connection lost. Reconnecting...');
+                // Auto-reconnect is built into EventSource
+            };
+        }
+        
+        // Handle AG-UI Protocol events
+        function handleAGUIEvent(data) {
+            addEvent(data.type, data);
+            
+            switch(data.type) {
+                case 'SESSION_START':
+                    console.log('Session started:', data.threadId);
+                    break;
+                    
+                case 'TOOL_CALL_START':
+                    if (data.toolCallName === 'browser_cloud') {
+                        document.getElementById('loading').classList.add('active');
+                        addEvent('BROWSER', 'Starting Browser-Use Cloud...');
+                    }
+                    break;
+                    
+                case 'STATE_DELTA':
+                    if (data.delta) {
+                        data.delta.forEach(patch => {
+                            if (patch.path === '/browser_preview_url') {
+                                browserPreviewUrl = patch.value;
+                                loadBrowserPreview(browserPreviewUrl);
+                            }
+                            if (patch.path === '/browser_status') {
+                                updateBrowserStatus(patch.value);
+                            }
+                        });
+                    }
+                    break;
+                    
+                case 'TOOL_CALL_END':
+                    document.getElementById('loading').classList.remove('active');
+                    break;
+                    
+                case 'RUN_FINISHED':
+                    document.getElementById('execute-btn').disabled = false;
+                    break;
+            }
+        }
+        
+        // Execute task
+        async function executeTask() {
+            const taskInput = document.getElementById('task-input');
+            const task = taskInput.value.trim();
+            
+            if (!task) {
+                alert('Please enter a task');
+                return;
+            }
+            
+            document.getElementById('execute-btn').disabled = true;
+            document.getElementById('loading').classList.add('active');
+            
+            try {
+                const response = await fetch('/api/ag-ui', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: task
+                    })
+                });
+                
+                const result = await response.json();
+                currentTaskId = result.thread_id;
+                addEvent('TASK_SUBMITTED', result);
+                
+            } catch (error) {
+                console.error('Failed to execute task:', error);
+                addEvent('ERROR', error.message);
+                document.getElementById('execute-btn').disabled = false;
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+        
+        // Load browser preview
+        function loadBrowserPreview(url) {
+            const frame = document.getElementById('browser-frame');
+            const placeholder = document.getElementById('browser-placeholder');
+            
+            frame.src = url;
+            frame.style.display = 'block';
+            placeholder.style.display = 'none';
+            
+            document.getElementById('browser-url').textContent = url;
+            document.getElementById('loading').classList.remove('active');
+            
+            addEvent('BROWSER_LOADED', { url: url });
+        }
+        
+        // Browser control functions
+        function pauseBrowser() {
+            if (!browserPreviewUrl) return;
+            // Send pause command through AG-UI
+            fetch('/api/ag-ui', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'pause',
+                    task_id: currentTaskId
+                })
+            });
+            addEvent('CONTROL', 'Browser paused');
+        }
+        
+        function resumeBrowser() {
+            if (!browserPreviewUrl) return;
+            // Send resume command through AG-UI
+            fetch('/api/ag-ui', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'resume',
+                    task_id: currentTaskId
+                })
+            });
+            addEvent('CONTROL', 'Browser resumed');
+        }
+        
+        function refreshBrowser() {
+            const frame = document.getElementById('browser-frame');
+            if (frame.src) {
+                frame.src = frame.src;
+                addEvent('CONTROL', 'Browser refreshed');
+            }
+        }
+        
+        // Update status indicator
+        function updateStatus(status) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            
+            dot.className = 'status-dot ' + status;
+            
+            switch(status) {
+                case 'connecting':
+                    text.textContent = 'Connecting...';
+                    break;
+                case 'connected':
+                    text.textContent = 'Connected';
+                    break;
+                case 'error':
+                    text.textContent = 'Connection Error';
+                    break;
+            }
+        }
+        
+        function updateBrowserStatus(status) {
+            addEvent('BROWSER_STATUS', { status: status });
+        }
+        
+        // Add event to stream
+        function addEvent(type, data) {
+            const stream = document.getElementById('event-stream');
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'event-item';
+            
+            const typeDiv = document.createElement('div');
+            typeDiv.className = 'event-type';
+            typeDiv.textContent = type;
+            
+            const dataDiv = document.createElement('div');
+            dataDiv.className = 'event-data';
+            dataDiv.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            
+            eventDiv.appendChild(typeDiv);
+            eventDiv.appendChild(dataDiv);
+            
+            // Insert after the h3 title
+            const title = stream.querySelector('h3');
+            if (title && title.nextSibling) {
+                stream.insertBefore(eventDiv, title.nextSibling);
+            } else {
+                stream.appendChild(eventDiv);
+            }
+            
+            // Keep only last 20 events
+            const events = stream.querySelectorAll('.event-item');
+            if (events.length > 20) {
+                events[events.length - 1].remove();
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', function() {
+            initAGUI();
+            
+            // Handle Enter key in textarea
+            document.getElementById('task-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    executeTask();
+                }
+            });
+        });
+        
+        // Cleanup on unload
+        window.addEventListener('beforeunload', function() {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+# Contact Management Tool - Human Network Organization
+
+The `contact_management` tool enables organizing and communicating with human stakeholders, team members, and decision-makers.
+
+## Usage
+
+Use this tool to manage your network of human contacts for approvals, consultations, and notifications:
+
+```json
+{
+    "tool": "contact_management",
+    "action": "add", 
+    "name": "Sarah Johnson",
+    "email": "sarah.j@company.com",
+    "role": "Marketing Director",
+    "organization": "TechCorp",
+    "tags": ["lead-gen", "decision-maker", "marketing"]
+}
+```
+
+## Actions Available
+
+### Contact Management
+- **list**: Display all contacts in directory
+- **add**: Add new contact to directory
+- **update**: Update existing contact information
+- **remove**: Remove contact from directory
+- **search**: Search contacts by criteria
+
+### Communication
+- **notify**: Send notification to specific contact(s)
+
+## Contact Fields
+
+### Required Fields
+- **name**: Full name of the contact
+- **email**: Primary email address
+- **role**: Job title or role
+
+### Optional Fields
+- **organization**: Company or organization name
+- **channels**: Communication channels (email, slack, phone, etc.)
+- **tags**: Categories for organizing contacts
+- **notes**: Additional information about the contact
+- **status**: Contact status (active, inactive)
+
+## Examples
+
+### Adding Contacts
+
+#### Marketing Team Member
+```json
+{
+    "tool": "contact_management",
+    "action": "add",
+    "name": "Sarah Johnson", 
+    "email": "sarah.j@company.com",
+    "role": "Marketing Director",
+    "organization": "TechCorp",
+    "channels": ["email", "slack"],
+    "tags": ["marketing", "lead-gen", "decision-maker"],
+    "notes": "Primary contact for lead generation campaigns and approvals"
+}
+```
+
+#### Technical Expert
+```json
+{
+    "tool": "contact_management",
+    "action": "add",
+    "name": "Mike Chen",
+    "email": "mike.chen@techco.com", 
+    "role": "Senior Developer",
+    "organization": "TechCorp",
+    "channels": ["email", "slack", "phone"],
+    "tags": ["technical", "integration", "api"],
+    "notes": "Technical expert for API integrations and system architecture"
+}
+```
+
+#### Executive Stakeholder
+```json
+{
+    "tool": "contact_management",
+    "action": "add",
+    "name": "Lisa Rodriguez",
+    "email": "lisa.r@company.com",
+    "role": "VP of Sales", 
+    "organization": "TechCorp",
+    "channels": ["email", "phone"],
+    "tags": ["executive", "sales", "strategic", "high-priority"],
+    "notes": "Executive approval required for major campaigns and strategy changes"
+}
+```
+
+### Searching Contacts
+
+#### By Role
+```json
+{
+    "tool": "contact_management", 
+    "action": "search",
+    "role": "director"
+}
+```
+
+#### By Tag
+```json
+{
+    "tool": "contact_management",
+    "action": "search", 
+    "tag": "lead-gen"
+}
+```
+
+#### By Search Term
+```json
+{
+    "tool": "contact_management",
+    "action": "search",
+    "search": "marketing techcorp"
+}
+```
+
+### Sending Notifications
+
+#### Campaign Approval Request
+```json
+{
+    "tool": "contact_management",
+    "action": "notify",
+    "contact_id": "contact_12345",
+    "message": "Requesting approval for Q4 lead generation campaign. Budget: $15K, Target: 1,000 qualified leads. Campaign details attached.",
+    "channel": "email",
+    "urgency": "normal"
+}
+```
+
+#### Urgent System Alert
+```json
+{
+    "tool": "contact_management",
+    "action": "notify", 
+    "contact_id": "contact_67890",
+    "message": "Critical: Lead generation system experiencing 50% drop in performance. Immediate technical review needed.",
+    "channel": "slack",
+    "urgency": "critical"
+}
+```
+
+### Updating Contacts
+
+#### Role Change
+```json
+{
+    "tool": "contact_management",
+    "action": "update",
+    "contact_id": "contact_12345", 
+    "role": "Senior Marketing Director",
+    "tags": ["marketing", "lead-gen", "decision-maker", "senior-leadership"]
+}
+```
+
+#### Add Communication Channel
+```json
+{
+    "tool": "contact_management",
+    "action": "update",
+    "contact_id": "contact_67890",
+    "channels": ["email", "slack", "phone", "teams"]
+}
+```
+
+## Contact Organization
+
+### Recommended Tags
+
+#### By Department
+- **marketing**: Marketing team members
+- **sales**: Sales team and leadership
+- **technical**: Developers, engineers, IT
+- **executive**: C-level and VP-level executives
+- **finance**: Finance and accounting contacts
+
+#### By Function
+- **decision-maker**: Can approve campaigns and strategies
+- **approver**: Has approval authority
+- **consultant**: Provides expert advice
+- **reviewer**: Reviews content and campaigns
+- **implementer**: Executes approved plans
+
+#### By Expertise
+- **lead-gen**: Lead generation expertise
+- **compliance**: Legal and compliance knowledge
+- **analytics**: Data analysis and insights
+- **creative**: Creative and content expertise
+- **strategy**: Strategic planning and direction
+
+#### By Priority
+- **high-priority**: Critical contacts requiring fast response
+- **stakeholder**: Key project stakeholders
+- **client**: External clients or customers
+- **vendor**: External service providers
+
+## Communication Channels
+
+### Available Channels
+- **email**: Traditional email communication
+- **slack**: Slack workspace messaging
+- **phone**: Voice calls and text messages
+- **teams**: Microsoft Teams messaging
+- **webhook**: API-based notifications
+
+### Channel Selection Guidelines
+- **email**: Formal approvals, detailed information
+- **slack**: Quick questions, urgent notifications
+- **phone**: Critical issues, personal discussions
+- **teams**: Team collaboration, project updates
+- **webhook**: System integrations, automated alerts
+
+## Notification Management
+
+### Urgency Levels
+- **low** 🟢: Non-urgent updates (24-48 hour response)
+- **normal** 🟡: Standard business communications (4-24 hour response) 
+- **high** 🟠: Time-sensitive issues (1-4 hour response)
+- **critical** 🔴: Emergency situations (immediate response needed)
+
+### Message Best Practices
+- **Clear Subject**: Concise, actionable subject lines
+- **Context**: Provide necessary background information
+- **Action Required**: Clearly state what response is needed
+- **Timeline**: Include deadlines or urgency indicators
+- **Contact Info**: Provide ways to follow up
+
+## Integration with Other Tools
+
+### Approval Workflows
+When using the `approval_tool`, contacts tagged with "approver" or "decision-maker" receive approval requests automatically.
+
+### Consultation Routing
+The `consultation_tool` routes questions to contacts with relevant expertise tags.
+
+### Notification Distribution
+System alerts and updates are sent to contacts based on their tags and roles.
+
+## Best Practices
+
+### Contact Organization
+- **Consistent Tagging**: Use standardized tags across all contacts
+- **Regular Updates**: Keep contact information current
+- **Clear Roles**: Define each contact's responsibilities
+- **Response Expectations**: Set clear communication expectations
+
+### Communication Etiquette
+- **Appropriate Urgency**: Only use high/critical for genuine emergencies
+- **Channel Matching**: Use the right channel for the message type
+- **Response Time**: Allow appropriate time based on urgency level
+- **Follow-up**: Track responses and follow up as needed
+
+The contact management tool creates an organized human network that integrates seamlessly with Ghost's AI capabilities, enabling efficient human-AI collaboration.
