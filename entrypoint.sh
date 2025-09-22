@@ -23,5 +23,5 @@ if [ -d "/a0/persistent" ]; then
     echo "Persistent directories configured"
 fi
 
-# Start the application
-exec python run.py
+# Start the application using the venv Python
+exec /opt/venv/bin/python run.py
