@@ -13,7 +13,7 @@ COPY . /a0
 WORKDIR /a0
 
 # Create directories and set permissions
-RUN mkdir -p /a0/memory-lite /a0/logs /a0/tmp /a0/outputs && \
+RUN mkdir -p /a0/memory /a0/logs /a0/tmp /a0/outputs && \
     chown -R agent:agent /a0
 
 # Set environment variables for Railway
