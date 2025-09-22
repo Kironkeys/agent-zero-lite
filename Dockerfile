@@ -12,9 +12,8 @@ RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements-custom.txt
 COPY . /a0
 WORKDIR /a0
 
-# Create directories and set permissions
-RUN mkdir -p /a0/memory /a0/logs /a0/tmp /a0/outputs && \
-    chown -R agent:agent /a0
+# Create directories
+RUN mkdir -p /a0/memory /a0/logs /a0/tmp /a0/outputs
 
 # Set environment variables for Railway
 ENV WEB_UI_PORT=80
@@ -23,8 +22,8 @@ ENV USE_FALKORDB=false
 ENV NEO4J_DISABLED=true
 ENV PYTHONPATH=/a0
 
-# Switch back to agent user
-USER agent
+# Keep as root user for Railway
+# USER agent
 
 # Expose the port Railway will use  
 EXPOSE 80
