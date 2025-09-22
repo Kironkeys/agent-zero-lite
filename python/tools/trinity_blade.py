@@ -24,6 +24,9 @@ class TrinityBlade(Tool):
             falkor_host = os.getenv('FALKORDB_HOST')
             falkor_port = int(os.getenv('FALKORDB_PORT', 6379))
             
+            # Debug log
+            print(f"DEBUG: FALKORDB_HOST from env: {falkor_host}")
+            
             if not falkor_host:
                 # No env var, check if in Docker or local
                 if os.path.exists('/.dockerenv'):

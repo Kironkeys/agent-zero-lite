@@ -60,15 +60,24 @@ class GraphRAGHelper:
         import os
         # Check for Railway/external FalkorDB first
         falkor_host = os.getenv('FALKORDB_HOST')
+        
+        # Debug logging
+        logger.info(f"DEBUG GraphRAG: FALKORDB_HOST env var = {falkor_host}")
+        logger.info(f"DEBUG GraphRAG: Docker check = {os.path.exists('/.dockerenv')}")
+        
         if falkor_host:
             # Use environment variable (Railway or external)
-            self._DB_HOST = falkor_host
+            # Handle Railway's long domain names
+            self._DB_HOST = falkor_host.split('.')[0] if '.' in falkor_host else falkor_host
+            logger.info(f"Using FalkorDB host from env: {self._DB_HOST}")
         elif os.path.exists('/.dockerenv'):
             # We're inside Docker - use service name
             self._DB_HOST = 'falkordb'
+            logger.info(f"Using Docker FalkorDB host: {self._DB_HOST}")
         else:
             # Local development - use localhost
             self._DB_HOST = 'localhost'
+            logger.info(f"Using local FalkorDB host: {self._DB_HOST}")
 
         # Store area and create area-specific graph name
         self._area = area
