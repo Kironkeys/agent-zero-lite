@@ -4,6 +4,7 @@
 echo "Stopping any local Redis/FalkorDB instances..."
 pkill -f redis-server || true
 pkill -f falkordb || true
+killall redis-server 2>/dev/null || true
 
 # Railway persistent volume setup
 if [ -d "/a0/persistent" ]; then
@@ -37,7 +38,10 @@ if [ -d "/a0/persistent" ]; then
     echo "Persistent directories configured"
 fi
 
-# Start the application using the base image's initialization script
-# If BRANCH is not set, use "main" as default
-BRANCH=${BRANCH:-main}
-exec /exe/initialize.sh "$BRANCH"
+# Override the initialize.sh to not start local FalkorDB
+export SKIP_FALKORDB=true
+export NO_LOCAL_REDIS=true
+
+# Start ONLY the web UI and API, not FalkorDB
+cd /a0
+/opt/venv/bin/python run.py
