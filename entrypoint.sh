@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Kill any local Redis/FalkorDB that might be running from base image
-echo "Railway deployment: Stopping any local Redis/FalkorDB instances..."
-pkill -f redis-server || true
-pkill -f falkordb || true
-killall redis-server 2>/dev/null || true
-
 # Railway persistent volume setup
 if [ -d "/a0/persistent" ]; then
     echo "Setting up persistent directories..."
@@ -38,10 +32,12 @@ if [ -d "/a0/persistent" ]; then
     echo "Persistent directories configured"
 fi
 
-# Override the initialize.sh to not start local FalkorDB
-export SKIP_FALKORDB=true
-export NO_LOCAL_REDIS=true
+# Start the application using the base image's initialization script
+# If BRANCH is not set, use "main" as default
+BRANCH=${BRANCH:-main}
 
-# Start ONLY the web UI and API, not FalkorDB
-cd /a0
-/opt/venv/bin/python run.py
+# Export variables to skip local FalkorDB
+export SKIP_LOCAL_FALKORDB=true
+export USE_EXTERNAL_FALKORDB=true
+
+exec /exe/initialize.sh "$BRANCH"
