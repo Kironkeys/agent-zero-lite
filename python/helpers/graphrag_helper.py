@@ -56,9 +56,14 @@ class GraphRAGHelper:
     def __init__(self, graph_name: str = "agent_zero_kg", area: str = "main") -> None:
         settings = get_settings()
         
-        # Dynamically determine DB host like Trinity Blade does
+        # Dynamically determine DB host
         import os
-        if os.path.exists('/.dockerenv'):
+        # Check for Railway/external FalkorDB first
+        falkor_host = os.getenv('FALKORDB_HOST')
+        if falkor_host:
+            # Use environment variable (Railway or external)
+            self._DB_HOST = falkor_host
+        elif os.path.exists('/.dockerenv'):
             # We're inside Docker - use service name
             self._DB_HOST = 'falkordb'
         else:

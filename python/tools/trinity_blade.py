@@ -20,16 +20,20 @@ class TrinityBlade(Tool):
         super().__init__(agent, **kwargs)
         try:
             # Connect to FalkorDB
-            # When in Docker, use service name 'falkordb'
-            # When local, use 'localhost'
-            if os.path.exists('/.dockerenv'):
-                # We're inside Docker - use internal port
-                falkor_host = 'falkordb'
-                falkor_port = 6379  # Internal port
-            else:
-                # Local development - use external port
-                falkor_host = 'localhost'
-                falkor_port = 6380  # External mapped port
+            # Check for environment variable first (Railway/external)
+            falkor_host = os.getenv('FALKORDB_HOST')
+            falkor_port = int(os.getenv('FALKORDB_PORT', 6379))
+            
+            if not falkor_host:
+                # No env var, check if in Docker or local
+                if os.path.exists('/.dockerenv'):
+                    # We're inside Docker - use service name
+                    falkor_host = 'falkordb'
+                    falkor_port = 6379  # Internal port
+                else:
+                    # Local development - use external port
+                    falkor_host = 'localhost'
+                    falkor_port = 6380  # External mapped port
             
             # Connect with appropriate port based on environment
             self.db = FalkorDB(host=falkor_host, port=falkor_port)
