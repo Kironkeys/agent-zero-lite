@@ -1,95 +1,104 @@
-# 🚀 Railway Deployment Guide - Ghost Agent Zero v9.5
+# 🚀 Railway Deployment Guide - Ghost Agent Zero with FalkorDB
 
-## Quick Deploy to Railway
+## Step 1: Deploy FalkorDB Service
 
-### Step 1: Prepare Repository
+### In Railway Dashboard:
+1. Click "New Service" → "Template"
+2. Search for "FalkorDB" template
+3. Configure with these EXACT environment variables:
+
+```
+PORT=6379
+REDIS_ARGS=--requirepass ${{FALKOR_PASSWORD}}
+FALKOR_HOST=${{RAILWAY_PRIVATE_DOMAIN}}
+FALKOR_PORT=${{PORT}}
+FALKOR_PASSWORD=${{secret(16)}}
+FALKOR_USERNAME=default
+FALKOR_PUBLIC_HOST=${{RAILWAY_TCP_PROXY_DOMAIN}}
+FALKOR_PUBLIC_PORT=${{RAILWAY_TCP_PROXY_PORT}}
+```
+
+✅ FalkorDB will auto-generate a secure password and private networking domain.
+
+## Step 2: Add Persistent Volume
+
+### In your Main App Service:
+1. Go to Settings → Volumes
+2. Click "Mount Volume"
+3. Mount path: `/a0/persistent`
+4. Size: 5GB (or more for production)
+
+## Step 3: Configure Main App Environment Variables
+
+### Add to your Ghost Agent Zero service:
+
 ```bash
-# Initialize git if not already done
-git init
-git add .
-git commit -m "Initial Ghost Agent Zero deployment"
+# FalkorDB Connection (reference FalkorDB service)
+FALKORDB_HOST=${{FalkorDB.RAILWAY_PRIVATE_DOMAIN}}
+FALKORDB_PORT=6379
+FALKORDB_PASSWORD=${{FalkorDB.FALKOR_PASSWORD}}
+USE_FALKORDB=true
+NEO4J_DISABLED=true
 
-# Push to GitHub (Railway will connect to this repo)
-git remote add origin https://github.com/yourusername/agent-zero-lite.git
-git push -u origin main
+# API Keys (keep your existing ones)
+OPENAI_API_KEY=${{OPENAI_API_KEY}}
+ANTHROPIC_API_KEY=${{ANTHROPIC_API_KEY}}
+GROQ_API_KEY=${{GROQ_API_KEY}}
+DEEPSEEK_API_KEY=${{DEEPSEEK_API_KEY}}
+MISTRAL_API_KEY=${{MISTRAL_API_KEY}}
+
+# Other configs
+WEB_UI_PORT=80
+WEB_UI_HOST=0.0.0.0
+ROOT_PASSWORD=${{ROOT_PASSWORD}}
 ```
 
-### Step 2: Deploy to Railway
-1. Go to [Railway.app](https://railway.app)
-2. Sign up/Login with GitHub
-3. Click "Deploy from GitHub repo"
-4. Select this `agent-zero-lite` repository
-5. Railway will automatically detect the `Dockerfile`
+## Step 4: Update Dockerfile for Persistent Storage
 
-### Step 3: Configure Environment Variables
-In Railway dashboard → Variables tab, add these environment variables from `.env.railway`:
+```dockerfile
+# Add to existing Dockerfile
+RUN mkdir -p /a0/persistent/memory /a0/persistent/falkordb_data \
+             /a0/persistent/logs /a0/persistent/outputs
 
-**Required:**
-- `API_KEY_OPENROUTER=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`
-- `HUME_API_KEY=qILbv6QiTfI4HKpi32tvnmfvhqkE8gimQ5pNvgV1reK22Bzt`
-- `HUME_CLIENT_SECRET=pGKDiweVGSAKujjfzSlNCIMeKvVXcD60kWVOKJkEOj5jnzVq8yGsGV09K3D5v3Cr`
-- `HUME_CONFIG_ID=37e6eaa3-bfa7-42fa-b591-8978e957b8f6`
-- `ROOT_PASSWORD=xvOPMQyoz46wxfD3AIQFky1uf9Pp1HVO`
-
-**Optional (add if you have them):**
-- `API_KEY_ANTHROPIC=`
-- `API_KEY_OPENAI=`
-- `API_KEY_GROQ=`
-
-### Step 4: Enable Public Access
-1. In Railway dashboard → Settings
-2. Generate Domain → Get your public URL
-3. Example: `https://agent-zero-lite-production.up.railway.app`
-
-### Step 5: Test Deployment
-1. Visit your Railway URL
-2. Ghost UI should load
-3. Test basic functionality
-
-## Integration with Legacy Compass
-
-Once deployed, update Legacy Compass to use your Railway URL:
-```javascript
-// In Legacy Compass API route
-const GHOST_URL = 'https://your-railway-url.up.railway.app'
+# Create symlinks to persistent volume
+RUN ln -sf /a0/persistent/memory /a0/memory && \
+    ln -sf /a0/persistent/logs /a0/logs && \
+    ln -sf /a0/persistent/outputs /a0/outputs
 ```
 
-## Database Persistence (Optional)
+## Step 5: Deploy & Test
 
-For persistent memory across restarts:
-1. Add Railway Redis add-on
-2. Update environment variables:
-   ```
-   USE_FALKORDB=true
-   FALKORDB_HOST=redis.railway.internal
-   FALKORDB_PORT=6379
-   ```
+### Deployment Order:
+1. **Deploy FalkorDB first** - Wait for "Ready to accept connections" in logs
+2. **Deploy main app** with updated environment variables
+3. **Test GraphRAG**: Save "John works at TechCorp" and verify entities in logs
+4. **Test persistence**: Redeploy and verify data remains
 
-## Troubleshooting
+## What Gets Persisted
 
-**Build Issues:**
-- Check Railway build logs for Python package errors
-- Verify all requirements in `requirements-custom.txt`
+The `/a0/persistent` volume stores:
+- **`/memory`** - FAISS vector indexes and memories
+- **`/falkordb_data`** - GraphRAG entity graphs  
+- **`/logs`** - Application logs
+- **`/outputs`** - Generated files
 
-**Runtime Issues:**
-- Check Railway deployment logs
-- Verify environment variables are set correctly
+## Verification Checklist
 
-**Connection Issues:**
-- Ensure CORS is configured for Legacy Compass domain
-- Check if Railway URL is publicly accessible
+✅ **FalkorDB Working:**
+- Check logs for GraphRAG entity extraction
+- Look for "Processing Documents" progress bars
 
-## Success Criteria ✅
+✅ **Tools Enabled:**
+- Scheduler, Notify, Document Query all active
+- GraphRAG ingest/query tools functional
 
-Deployment successful when:
-- [ ] Ghost UI loads on Railway public URL
-- [ ] API endpoints respond (test `/api/agent-zero`)
-- [ ] Legacy Compass can connect to Ghost
-- [ ] Response times under 5 seconds
+✅ **Persistence Working:**
+- Data survives container restarts
+- Memories and entities remain after redeploy
 
-## Next Steps
+## Important Notes
 
-1. **Test the deployment** - Verify Ghost loads and responds
-2. **Update Legacy Compass** - Point to Railway URL
-3. **Monitor performance** - Check logs and response times
-4. **Add Redis persistence** - If memory needs to survive restarts
+- FalkorDB password auto-generates with `${{secret(16)}}`
+- Use `${{FalkorDB.RAILWAY_PRIVATE_DOMAIN}}` for internal networking
+- The volume mount at `/a0/persistent` ensures everything survives redeploys
+- GraphRAG uses utility model when configured (cheaper entity extraction)

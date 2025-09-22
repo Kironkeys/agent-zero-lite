@@ -71,8 +71,24 @@ class GraphRAGHelper:
         self._graph_name = f"{graph_name}_{area}"  # e.g., "agent_zero_kg_main", "agent_zero_kg_fragments"
 
         # Build litellm model identifier
-        provider = settings["chat_model_provider"].strip()
-        model_name = settings["chat_model_name"].strip()
+        # PREFER UTILITY MODEL for entity extraction if available (cheaper/faster)
+        utility_provider = settings.get("utility_model_provider")
+        utility_name = settings.get("utility_model_name")
+        
+        if utility_provider and utility_name:
+            # Use utility model for entity extraction (cheaper/faster)
+            provider = utility_provider.strip()
+            model_name = utility_name.strip()
+            api_base_key = "utility_model_api_base"
+            kwargs_key = "utility_model_kwargs"
+            logger.info(f"GraphRAG using utility model: {provider}/{model_name}")
+        else:
+            # Fall back to chat model
+            provider = settings["chat_model_provider"].strip()
+            model_name = settings["chat_model_name"].strip()
+            api_base_key = "chat_model_api_base"
+            kwargs_key = "chat_model_kwargs"
+            logger.info(f"GraphRAG using chat model: {provider}/{model_name}")
 
         # Build proper litellm model identifier
         # For openrouter, we need to use openrouter/ prefix so litellm routes correctly
@@ -83,11 +99,11 @@ class GraphRAGHelper:
 
         # Additional LiteLLM keyword arguments (api_base etc.)
         additional_params: dict = {}
-        api_base = settings.get("chat_model_api_base", "")
+        api_base = settings.get(api_base_key, "")
         if api_base:
             additional_params["api_base"] = api_base
         # Merge custom kwargs from settings (already a dict)
-        chat_kwargs = settings.get("chat_model_kwargs", {}) or {}
+        chat_kwargs = settings.get(kwargs_key, {}) or {}
         # Convert string values to proper types for OpenRouter compatibility
         for key, value in chat_kwargs.items():
             if key == "temperature" and isinstance(value, str):
@@ -126,8 +142,10 @@ class GraphRAGHelper:
                 host=self._DB_HOST,
                 port=self._DB_PORT,
             )
-        except Exception:
+            logger.info(f"Connected to existing KnowledgeGraph: {self._graph_name}")
+        except Exception as e:
             # Graph not created yet – defer creation until we have sources/ontology
+            logger.info(f"KnowledgeGraph {self._graph_name} not initialized yet: {e}")
             self._kg = None
 
     # ------------------------------------------------------------------ public
@@ -154,15 +172,27 @@ class GraphRAGHelper:
     def _ingest_sources(self, sources: List[AbstractSource], metadata: dict | None = None) -> None:
         """Internal method that makes sure the KG exists and processes sources."""
         if self._kg is None:
-            # Build ontology dynamically from the *first* batch of sources
-            ontology = Ontology.from_sources(sources, model=self._llm_model)
-            self._kg = KnowledgeGraph(
-                name=self._graph_name,
-                model_config=self._model_config,
-                ontology=ontology,
-                host=self._DB_HOST,
-                port=self._DB_PORT,
-            )
+            try:
+                # First try to connect to existing graph (may have been created by another process)
+                self._kg = KnowledgeGraph(
+                    name=self._graph_name,
+                    model_config=self._model_config,
+                    host=self._DB_HOST,
+                    port=self._DB_PORT,
+                )
+                logger.info(f"Reconnected to existing KnowledgeGraph: {self._graph_name}")
+            except Exception:
+                # Build ontology dynamically from the *first* batch of sources
+                logger.info(f"Building new ontology for KnowledgeGraph: {self._graph_name}")
+                ontology = Ontology.from_sources(sources, model=self._llm_model)
+                self._kg = KnowledgeGraph(
+                    name=self._graph_name,
+                    model_config=self._model_config,
+                    ontology=ontology,
+                    host=self._DB_HOST,
+                    port=self._DB_PORT,
+                )
+                logger.info(f"Created new KnowledgeGraph: {self._graph_name}")
         # Add knowledge from sources into graph
         self._kg.process_sources(sources)
 
