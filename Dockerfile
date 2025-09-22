@@ -12,15 +12,8 @@ RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements-custom.txt
 COPY . /a0
 WORKDIR /a0
 
-# Create persistent directories structure
-RUN mkdir -p /a0/persistent/memory /a0/persistent/logs /a0/persistent/tmp /a0/persistent/outputs
-
-# Create symlinks from standard paths to persistent volume
-RUN rm -rf /a0/memory /a0/logs /a0/outputs && \
-    ln -sf /a0/persistent/memory /a0/memory && \
-    ln -sf /a0/persistent/logs /a0/logs && \
-    ln -sf /a0/persistent/outputs /a0/outputs && \
-    mkdir -p /a0/tmp
+# Create directory structure
+RUN mkdir -p /a0/memory /a0/logs /a0/tmp /a0/outputs
 
 # Set environment variables for Railway
 ENV WEB_UI_PORT=80
@@ -32,7 +25,12 @@ ENV PYTHONPATH=/a0
 # Keep as root user for Railway
 # USER agent
 
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose the port Railway will use  
 EXPOSE 80
 
-# Use the default entrypoint from base image
+# Use custom entrypoint for persistent volume handling
+ENTRYPOINT ["/entrypoint.sh"]
