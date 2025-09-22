@@ -33,4 +33,6 @@ if [ -d "/a0/persistent" ]; then
 fi
 
 # Start the application using the base image's initialization script
-exec /exe/initialize.sh $BRANCH
+# If BRANCH is not set, use "main" as default
+BRANCH=${BRANCH:-main}
+exec /exe/initialize.sh "$BRANCH"
