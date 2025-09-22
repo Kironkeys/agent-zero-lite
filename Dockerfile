@@ -18,9 +18,10 @@ RUN mkdir -p /a0/memory /a0/logs /a0/tmp /a0/outputs
 # Set environment variables for Railway
 ENV WEB_UI_PORT=80
 ENV WEB_UI_HOST=0.0.0.0
-ENV USE_FALKORDB=false
+ENV USE_FALKORDB=true
 ENV NEO4J_DISABLED=true
 ENV PYTHONPATH=/a0
+ENV DISABLE_LOCAL_FALKORDB=true
 
 # Keep as root user for Railway
 # USER agent

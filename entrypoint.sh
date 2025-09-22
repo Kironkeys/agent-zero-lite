@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Kill any local Redis/FalkorDB that might be running from base image
+echo "Stopping any local Redis/FalkorDB instances..."
+pkill -f redis-server || true
+pkill -f falkordb || true
+
 # Railway persistent volume setup
 if [ -d "/a0/persistent" ]; then
     echo "Setting up persistent directories..."
