@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Kill any local Redis/FalkorDB that might be running from base image
-echo "Stopping any local Redis/FalkorDB instances..."
+echo "Railway deployment: Stopping any local Redis/FalkorDB instances..."
 pkill -f redis-server || true
 pkill -f falkordb || true
 killall redis-server 2>/dev/null || true
