@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkordb
+    ports:
+      - "6379:6379"
+    volumes:
+      - falkor_data:/data
+    networks:
+      - ghost-network
+    restart: unless-stopped
+
+  agent-zero-lite:
+    build: .
+    container_name: agent-zero-lite
+    ports:
+      - "80:80"
+      - "443:443"  # For SSL if needed
+    environment:
+      - API_KEY_OPENAI=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
+      - API_KEY_OPENROUTER=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
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - USE_FALKORDB=true
+      - NEO4J_DISABLED=true
+      - WEB_UI_HOST=0.0.0.0
+      - WEB_UI_PORT=80
+      - MCP_SERVER_TOKEN=test-token-123
+    volumes:
+      - agent_memory:/a0/memory
+      - agent_logs:/a0/logs
+      - agent_outputs:/a0/outputs
+      - agent_knowledge:/a0/knowledge
+      - agent_instruments:/a0/instruments
+      - agent_tmp:/a0/tmp
+    depends_on:
+      - falkordb
+    networks:
+      - ghost-network
+    restart: unless-stopped
+
+volumes:
+  falkor_data:
+    driver: local
+  agent_memory:
+    driver: local
+  agent_logs:
+    driver: local
+  agent_outputs:
+    driver: local
+  agent_knowledge:
+    driver: local
+  agent_instruments:
+    driver: local
+  agent_tmp:
+    driver: local
+
+networks:
+  ghost-network:
+    driver: bridge

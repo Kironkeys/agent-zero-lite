@@ -2,25 +2,27 @@ name: ghost-agent-zero
 region: sfo
 
 services:
+  # FalkorDB Service (like your local falkordb/falkordb:latest)
   - name: falkordb
     github:
       repo: Kironkeys/falkor-agent
       branch: main
       deploy_on_push: true
     dockerfile_path: Dockerfile
-    instance_size_slug: basic-xxs
+    instance_size_slug: professional-xs  # 1 vCPU, 2GB RAM for DB
     instance_count: 1
     http_port: 6379
     internal_ports:
       - 6379
 
+  # Agent Zero Lite (like your local agent0ai/agent-zero:v0.9.5)  
   - name: agent-zero-lite
     github:
       repo: Kironkeys/agent-zero-lite
       branch: main
       deploy_on_push: true
     dockerfile_path: Dockerfile
-    instance_size_slug: basic-xs
+    instance_size_slug: professional-s   # 2 vCPU, 4GB RAM for main app
     instance_count: 1
     http_port: 80
     envs:
