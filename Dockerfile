@@ -12,8 +12,15 @@ RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements-custom.txt
 COPY . /a0
 WORKDIR /a0
 
-# Create directories
-RUN mkdir -p /a0/memory /a0/logs /a0/tmp /a0/outputs
+# Create persistent directories structure
+RUN mkdir -p /a0/persistent/memory /a0/persistent/logs /a0/persistent/tmp /a0/persistent/outputs
+
+# Create symlinks from standard paths to persistent volume
+RUN rm -rf /a0/memory /a0/logs /a0/outputs && \
+    ln -sf /a0/persistent/memory /a0/memory && \
+    ln -sf /a0/persistent/logs /a0/logs && \
+    ln -sf /a0/persistent/outputs /a0/outputs && \
+    mkdir -p /a0/tmp
 
 # Set environment variables for Railway
 ENV WEB_UI_PORT=80
