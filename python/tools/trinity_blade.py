@@ -37,6 +37,9 @@ class TrinityBlade(Tool):
                     # Local development - use external port
                     falkor_host = 'localhost'
                     falkor_port = 6380  # External mapped port
+            else:
+                # Use the host as-is from Railway
+                print(f"Using FalkorDB host from env: {falkor_host}")
             
             # Connect with appropriate port based on environment
             self.db = FalkorDB(host=falkor_host, port=falkor_port)

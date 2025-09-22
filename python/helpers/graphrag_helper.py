@@ -67,8 +67,8 @@ class GraphRAGHelper:
         
         if falkor_host:
             # Use environment variable (Railway or external)
-            # Handle Railway's long domain names
-            self._DB_HOST = falkor_host.split('.')[0] if '.' in falkor_host else falkor_host
+            # Use the full hostname as-is from Railway
+            self._DB_HOST = falkor_host
             logger.info(f"Using FalkorDB host from env: {self._DB_HOST}")
         elif os.path.exists('/.dockerenv'):
             # We're inside Docker - use service name
