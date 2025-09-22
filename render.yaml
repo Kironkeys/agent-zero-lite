@@ -1,0 +1,39 @@
+services:
+  # FalkorDB Service
+  - type: web
+    name: falkordb
+    env: docker
+    repo: https://github.com/Kironkeys/falkor-agent
+    dockerfilePath: ./Dockerfile
+    envVars: []
+    
+  # Agent Zero Lite Service
+  - type: web
+    name: agent-zero-lite
+    env: docker
+    repo: https://github.com/Kironkeys/agent-zero-lite
+    dockerfilePath: ./Dockerfile
+    disk:
+      name: agent-data
+      mountPath: /a0/persistent
+      sizeGB: 10
+    envVars:
+      - key: API_KEY_OPENAI
+        value: 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
+      - key: API_KEY_OPENROUTER
+        value: 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
+      - key: FALKORDB_HOST
+        fromService:
+          type: web
+          name: falkordb
+          property: host
+      - key: FALKORDB_PORT
+        value: 6379
+      - key: USE_FALKORDB
+        value: true
+      - key: NEO4J_DISABLED
+        value: true
+      - key: WEB_UI_HOST
+        value: 0.0.0.0
+      - key: MCP_SERVER_TOKEN
+        value: test-token-123

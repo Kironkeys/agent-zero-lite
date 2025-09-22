@@ -1,0 +1,48 @@
+name: ghost-agent-zero
+region: sfo
+
+services:
+  - name: falkordb
+    github:
+      repo: Kironkeys/falkor-agent
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    http_port: 6379
+    internal_ports:
+      - 6379
+
+  - name: agent-zero-lite
+    github:
+      repo: Kironkeys/agent-zero-lite
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: Dockerfile
+    instance_size_slug: basic-xs
+    instance_count: 1
+    http_port: 80
+    envs:
+      - key: API_KEY_OPENAI
+        value: "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"
+        type: SECRET
+      - key: API_KEY_OPENROUTER
+        value: "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"
+        type: SECRET
+      - key: FALKORDB_HOST
+        value: "${falkordb.PRIVATE_URL}"
+        scope: RUN_TIME
+      - key: FALKORDB_PORT
+        value: "6379"
+      - key: USE_FALKORDB
+        value: "true"
+      - key: NEO4J_DISABLED
+        value: "true"
+      - key: WEB_UI_HOST
+        value: "0.0.0.0"
+      - key: WEB_UI_PORT
+        value: "80"
+      - key: MCP_SERVER_TOKEN
+        value: "test-token-123"
+        type: SECRET
